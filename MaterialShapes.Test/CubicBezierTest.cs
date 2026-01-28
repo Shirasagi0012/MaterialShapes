@@ -14,7 +14,7 @@ public class CubicBezierTest
     private readonly CubicBezier _cubic = new(P0, P1, P2, P3);
 
     [Fact]
-    public void ConstructionTest ( )
+    public void ConstructionTest()
     {
         Assert.Equal(P0, _cubic.Anchor0);
         Assert.Equal(P1, _cubic.Control0);
@@ -23,7 +23,7 @@ public class CubicBezierTest
     }
 
     [Fact]
-    public void CircularArcTest ( )
+    public void CircularArcTest()
     {
         var arcCubic = CubicBezier.CircularArc(Zero, P0, P3);
         Assert.Equal(P0, arcCubic.Anchor0);
@@ -31,7 +31,7 @@ public class CubicBezierTest
     }
 
     [Fact]
-    public void DivTest ( )
+    public void DivTest()
     {
         var divCubic = _cubic / 1d;
         AssertCubicsEqualish(_cubic, divCubic);
@@ -53,7 +53,7 @@ public class CubicBezierTest
     }
 
     [Fact]
-    public void TimesTest ( )
+    public void TimesTest()
     {
         var timesCubic = _cubic * 1d;
         Assert.Equal(P0, timesCubic.Anchor0);
@@ -81,7 +81,7 @@ public class CubicBezierTest
     }
 
     [Fact]
-    public void PlusTest ( )
+    public void PlusTest()
     {
         var offsetCubic = _cubic * 2d;
         var plusCubic = _cubic + offsetCubic;
@@ -93,7 +93,7 @@ public class CubicBezierTest
     }
 
     [Fact]
-    public void ReverseTest ( )
+    public void ReverseTest()
     {
         var reverseCubic = _cubic.Reversed();
         Assert.Equal(P3, reverseCubic.Anchor0);
@@ -103,7 +103,7 @@ public class CubicBezierTest
     }
 
     [Fact]
-    public void StraightLineTest ( )
+    public void StraightLineTest()
     {
         var lineCubic = CubicBezier.StraightLine(P0, P3);
         Assert.Equal(P0, lineCubic.Anchor0);
@@ -113,7 +113,7 @@ public class CubicBezierTest
     }
 
     [Fact]
-    public void SplitTest ( )
+    public void SplitTest()
     {
         var (split0, split1) = _cubic.Split(0.5);
         Assert.Equal(_cubic.Anchor0, split0.Anchor0);
@@ -123,7 +123,7 @@ public class CubicBezierTest
     }
 
     [Fact]
-    public void PointOnCurveTest ( )
+    public void PointOnCurveTest()
     {
         var halfway = _cubic.PointOnCurve(0.5);
         AssertBetween(_cubic.Anchor0, _cubic.Anchor1, halfway);
@@ -135,7 +135,7 @@ public class CubicBezierTest
     }
 
     [Fact]
-    public void TransformTest ( )
+    public void TransformTest()
     {
         var transform = IdentityTransform();
         var transformedCubic = _cubic.Transformed(transform);
@@ -158,7 +158,7 @@ public class CubicBezierTest
     }
 
     [Fact]
-    public void EmptyCubicHasZeroLength ( )
+    public void EmptyCubicHasZeroLength()
     {
         Assert.True(CubicBezier.Empty(10d, 10d).IsZeroLength);
     }

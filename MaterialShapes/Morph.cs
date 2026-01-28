@@ -11,28 +11,28 @@ public sealed class Morph
 
     internal IReadOnlyList<(CubicBezier Start, CubicBezier End)> MorphMatch => _morphMatch;
 
-    public Morph (RoundedPolygon start, RoundedPolygon end)
+    public Morph(RoundedPolygon start, RoundedPolygon end)
     {
         _start = start;
         _end = end;
         _morphMatch = Match(start, end);
     }
 
-    public Rect CalculateBounds (bool approximate = true)
+    public Rect CalculateBounds(bool approximate = true)
     {
         var b1 = _start.CalculateBounds(approximate);
         var b2 = _end.CalculateBounds(approximate);
         return Utils.UnionBounds(b1, b2);
     }
 
-    public Rect CalculateMaxBounds ( )
+    public Rect CalculateMaxBounds()
     {
         var b1 = _start.CalculateMaxBounds();
         var b2 = _end.CalculateMaxBounds();
         return Utils.UnionBounds(b1, b2);
     }
 
-    public List<CubicBezier> AsCubics (double progress)
+    public List<CubicBezier> AsCubics(double progress)
     {
         var result = new List<CubicBezier>(_morphMatch.Count);
 
@@ -41,18 +41,18 @@ public sealed class Morph
         CubicBezier? firstCubic = null;
         CubicBezier? lastCubic = null;
 
-        for ( var i = 0; i < _morphMatch.Count; i++ )
+        for (var i = 0; i < _morphMatch.Count; i++)
         {
             var cubic = CubicBezier.Interpolate(_morphMatch[i].Start, _morphMatch[i].End, progress);
             firstCubic ??= cubic;
 
-            if ( lastCubic is not null )
+            if (lastCubic is { })
                 result.Add(lastCubic.Value);
 
             lastCubic = cubic;
         }
 
-        if ( lastCubic is not null && firstCubic is not null )
+        if (lastCubic is { } && firstCubic is { })
         {
             var last = lastCubic.Value;
             var first = firstCubic.Value;
@@ -69,23 +69,19 @@ public sealed class Morph
     /// <summary>
     /// The same as <see cref="ForEachCubic"/> but returns an enumerable.
     /// </summary>
-    public IEnumerable<CubicBezier> EnumerateCubics (double progress)
+    public IEnumerable<CubicBezier> EnumerateCubics(double progress)
     {
-        for ( var i = 0; i < _morphMatch.Count; i++ )
-        {
+        for (var i = 0; i < _morphMatch.Count; i++)
             yield return CubicBezier.Interpolate(_morphMatch[i].Start, _morphMatch[i].End, progress);
-        }
     }
 
-    public void ForEachCubic (double progress, Action<CubicBezier> callback)
+    public void ForEachCubic(double progress, Action<CubicBezier> callback)
     {
-        for ( var i = 0; i < _morphMatch.Count; i++ )
-        {
+        for (var i = 0; i < _morphMatch.Count; i++)
             callback(CubicBezier.Interpolate(_morphMatch[i].Start, _morphMatch[i].End, progress));
-        }
     }
 
-    internal static List<(CubicBezier Start, CubicBezier End)> Match (RoundedPolygon p1, RoundedPolygon p2)
+    internal static List<(CubicBezier Start, CubicBezier End)> Match(RoundedPolygon p1, RoundedPolygon p2)
     {
         var measuredPolygon1 = MeasuredPolygon.MeasurePolygon(new LengthMeasurer(), p1);
         var measuredPolygon2 = MeasuredPolygon.MeasurePolygon(new LengthMeasurer(), p2);
@@ -108,7 +104,7 @@ public sealed class Morph
         var b1 = GetOrNull(bs1, i1++);
         var b2 = GetOrNull(bs2, i2++);
 
-        while ( b1 is not null && b2 is not null )
+        while (b1 is { } && b2 is { })
         {
             var b1a = i1 == bs1.Count ? 1.0 : b1.EndOutlineProgress;
 
@@ -137,21 +133,23 @@ public sealed class Morph
             b2 = seg2Result.NewB2;
         }
 
-        if ( b1 is not null || b2 is not null )
+        if (b1 is { } || b2 is { })
             throw new InvalidOperationException("Expected both Polygon's Cubics to be fully matched");
 
         return ret;
     }
 
-    private static MeasuredPolygon.MeasuredCubic? GetOrNull (MeasuredPolygon polygon, int index) =>
-        index < 0 || index >= polygon.Count ? null : polygon[index];
+    private static MeasuredPolygon.MeasuredCubic? GetOrNull(MeasuredPolygon polygon, int index)
+    {
+        return index < 0 || index >= polygon.Count ? null : polygon[index];
+    }
 
-    private static (MeasuredPolygon.MeasuredCubic Seg, MeasuredPolygon.MeasuredCubic Remainder) CutAndKeepRemainder (
+    private static (MeasuredPolygon.MeasuredCubic Seg, MeasuredPolygon.MeasuredCubic Remainder) CutAndKeepRemainder(
         MeasuredPolygon.MeasuredCubic cubic,
-        double cutOutlineProgress)
+        double cutOutlineProgress
+    )
     {
         var (before, after) = cubic.CutAtProgress(cutOutlineProgress);
         return (before, after);
     }
-
 }

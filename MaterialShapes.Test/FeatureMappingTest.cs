@@ -12,17 +12,17 @@ public class FeatureMappingTest
     private readonly RoundedPolygon _square = RoundedPolygon.FromVertexCount(4);
 
     [Fact]
-    public void FeatureMappingTriangles ( )
+    public void FeatureMappingTriangles()
     {
         VerifyMapping(_triangleWithRoundings, _triangle, distances =>
         {
-            foreach ( var d in distances )
+            foreach (var d in distances)
                 Assert.True(d < 0.1);
         });
     }
 
     [Fact]
-    public void FeatureMappingTriangleToSquare ( )
+    public void FeatureMappingTriangleToSquare()
     {
         VerifyMapping(_triangle, _square, distances =>
         {
@@ -34,7 +34,7 @@ public class FeatureMappingTest
     }
 
     [Fact]
-    public void FeatureMappingSquareToTriangle ( )
+    public void FeatureMappingSquareToTriangle()
     {
         VerifyMapping(_square, _triangle, distances =>
         {
@@ -46,24 +46,24 @@ public class FeatureMappingTest
     }
 
     [Fact]
-    public void FeatureMappingDoesNotCrash ( )
+    public void FeatureMappingDoesNotCrash()
     {
         var checkmark = RoundedPolygon.FromVertices(
             [
                 new Point(400, -304),
-                    new Point(240, -464),
-                    new Point(296, -520),
-                    new Point(400, -416),
-                    new Point(664, -680),
-                    new Point(720, -624),
-                    new Point(400, -304)
+                new Point(240, -464),
+                new Point(296, -520),
+                new Point(400, -416),
+                new Point(664, -680),
+                new Point(720, -624),
+                new Point(400, -304)
             ])
             .Normalized();
 
         var verySunny = RoundedPolygon.CreateStar(
-                numVerticesPerRadius: 8,
+                8,
                 innerRadius: 0.65,
-                rounding: new CornerRounding(radius: 0.15))
+                rounding: new CornerRounding(0.15))
             .Normalized();
 
         VerifyMapping(checkmark, verySunny, distances =>
@@ -73,18 +73,19 @@ public class FeatureMappingTest
         });
     }
 
-    protected void VerifyMapping (
+    protected void VerifyMapping(
         RoundedPolygon p1,
         RoundedPolygon p2,
-        Action<List<double>> validator)
+        Action<List<double>> validator
+    )
     {
         var f1 = MeasuredPolygon.MeasurePolygon(new LengthMeasurer(), p1).Features;
         var f2 = MeasuredPolygon.MeasurePolygon(new LengthMeasurer(), p2).Features;
 
-        var map = FeatureMapping.DoMapping([..f1], [..f2]);
+        var map = FeatureMapping.DoMapping([.. f1], [.. f2]);
 
         var distances = new List<double>();
-        foreach ( var (progress1, progress2) in map )
+        foreach (var (progress1, progress2) in map)
         {
             var feature1 = f1.First(f => f.Progress == progress1);
             var feature2 = f2.First(f => f.Progress == progress2);

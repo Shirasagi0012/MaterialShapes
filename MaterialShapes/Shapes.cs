@@ -1,16 +1,16 @@
-
 using Avalonia;
 
 namespace MaterialShapes;
 
 public partial class RoundedPolygon
 {
-    public static RoundedPolygon CreateCircle (
+    public static RoundedPolygon CreateCircle(
         int numVertices = 8,
         double radius = 1D,
-        Point center = default)
+        Point center = default
+    )
     {
-        if ( numVertices < 3 )
+        if (numVertices < 3)
             throw new ArgumentException("Circle must have at least three vertices");
 
         // Half of the angle between two adjacent vertices on the polygon
@@ -26,7 +26,7 @@ public partial class RoundedPolygon
         );
     }
 
-    public static RoundedPolygon CreateRectangle (
+    public static RoundedPolygon CreateRectangle(
         double width = 2D,
         double height = 2D,
         CornerRounding? rounding = null,
@@ -50,7 +50,7 @@ public partial class RoundedPolygon
         );
     }
 
-    public static RoundedPolygon CreateStar (
+    public static RoundedPolygon CreateStar(
         int numVerticesPerRadius,
         double radius = 1D,
         double innerRadius = 0.5D,
@@ -60,25 +60,17 @@ public partial class RoundedPolygon
         Point center = default
     )
     {
-        if ( radius <= 0d || innerRadius <= 0d )
-        {
-            throw new ArgumentException("Star radii must both be greater than 0");
-        }
+        if (radius <= 0d || innerRadius <= 0d) throw new ArgumentException("Star radii must both be greater than 0");
 
-        if ( innerRadius >= radius )
-        {
-            throw new ArgumentException("innerRadius must be less than radius");
-        }
+        if (innerRadius >= radius) throw new ArgumentException("innerRadius must be less than radius");
 
         var pvRounding = perVertexRounding;
         var roundingValue = rounding ?? CornerRounding.Unrounded;
 
-        if ( pvRounding is null && innerRounding is not null )
-        {
+        if (pvRounding is null && innerRounding is { })
             pvRounding = Enumerable.Range(0, numVerticesPerRadius)
-                .SelectMany(_ => new[ ] { roundingValue, innerRounding.Value })
+                .SelectMany(_ => new[] { roundingValue, innerRounding.Value })
                 .ToList();
-        }
 
         return new RoundedPolygon(
             StarVerticesFromNumVerts(numVerticesPerRadius, radius, innerRadius, center),
@@ -88,11 +80,16 @@ public partial class RoundedPolygon
         );
     }
 
-    private static Point[ ] StarVerticesFromNumVerts (int numVerticesPerRadius, double radius, double innerRadius, Point center)
+    private static Point[] StarVerticesFromNumVerts(
+        int numVerticesPerRadius,
+        double radius,
+        double innerRadius,
+        Point center
+    )
     {
         var result = new Point[numVerticesPerRadius * 2];
         var arrayIndex = 0;
-        for ( var i = 0; i < numVerticesPerRadius; i++ )
+        for (var i = 0; i < numVerticesPerRadius; i++)
         {
             var vertex = Utils.RadialToCartesian(radius, Math.PI / numVerticesPerRadius * 2 * i);
             result[arrayIndex++] = new Point(center.X + vertex.X, center.Y + vertex.Y);
@@ -104,13 +101,14 @@ public partial class RoundedPolygon
         return result;
     }
 
-    public static RoundedPolygon CreatePill (
+    public static RoundedPolygon CreatePill(
         double width = 2D,
         double height = 1D,
         double smoothing = 0D,
-        Point center = default)
+        Point center = default
+    )
     {
-        if ( width <= 0d || height <= 0d )
+        if (width <= 0d || height <= 0d)
             throw new ArgumentException("Pill shapes must have positive width and height");
 
         var wHalf = width / 2d;
@@ -121,17 +119,17 @@ public partial class RoundedPolygon
             new Point(wHalf + center.X, hHalf + center.Y),
             new Point(-wHalf + center.X, hHalf + center.Y),
             new Point(-wHalf + center.X, -hHalf + center.Y),
-            new Point(wHalf + center.X, -hHalf + center.Y),
+            new Point(wHalf + center.X, -hHalf + center.Y)
         };
 
         return new RoundedPolygon(
             vertices,
             new CornerRounding(Math.Min(wHalf, hHalf), smoothing),
-            perVertexRounding: null,
-            center: center);
+            null,
+            center);
     }
 
-    public static RoundedPolygon CreatePillStar (
+    public static RoundedPolygon CreatePillStar(
         double width = 2D,
         double height = 1D,
         int numVerticesPerRadius = 8,
@@ -141,23 +139,22 @@ public partial class RoundedPolygon
         List<CornerRounding>? perVertexRounding = null,
         double vertexSpacing = 0.5,
         double startLocation = 0.0,
-        Point center = default)
+        Point center = default
+    )
     {
-        if ( width <= 0d || height <= 0d )
+        if (width <= 0d || height <= 0d)
             throw new ArgumentException("Pill shapes must have positive width and height");
 
-        if ( innerRadiusRatio <= 0d || innerRadiusRatio > 1d )
+        if (innerRadiusRatio <= 0d || innerRadiusRatio > 1d)
             throw new ArgumentException("innerRadius must be between 0 and 1");
 
         var pvRounding = perVertexRounding;
         var roundingValue = rounding ?? CornerRounding.Unrounded;
 
-        if ( pvRounding is null && innerRounding is not null )
-        {
+        if (pvRounding is null && innerRounding is { })
             pvRounding = Enumerable.Range(0, numVerticesPerRadius)
-                .SelectMany(_ => new[ ] { roundingValue, innerRounding.Value })
+                .SelectMany(_ => new[] { roundingValue, innerRounding.Value })
                 .ToList();
-        }
 
         return new RoundedPolygon(
             PillStarVerticesFromNumVerts(
@@ -173,14 +170,15 @@ public partial class RoundedPolygon
             center);
     }
 
-    private static Point[ ] PillStarVerticesFromNumVerts (
+    private static Point[] PillStarVerticesFromNumVerts(
         int numVerticesPerRadius,
         double width,
         double height,
         double innerRadiusRatio,
         double vertexSpacing,
         double startLocation,
-        Point center)
+        Point center
+    )
     {
         // Width/height define the overall pill's bounding box; each endcap is a semicircle whose
         // radius is half of the smaller dimension.
@@ -191,7 +189,7 @@ public partial class RoundedPolygon
         var vSegHalf = vSegLen / 2d;
         var hSegHalf = hSegLen / 2d;
 
-        var circlePerimeter = (2d * Math.PI) * endcapRadius * Interpolate(innerRadiusRatio, 1d, vertexSpacing);
+        var circlePerimeter = 2d * Math.PI * endcapRadius * Interpolate(innerRadiusRatio, 1d, vertexSpacing);
         var perimeter = 2d * hSegLen + 2d * vSegLen + circlePerimeter;
 
         var sections = new double[11];
@@ -224,18 +222,18 @@ public partial class RoundedPolygon
         var rectTL = new Point(-hSegHalf, -vSegHalf);
         var rectTR = new Point(hSegHalf, -vSegHalf);
 
-        for ( var i = 0; i < numVerticesPerRadius * 2; i++ )
+        for (var i = 0; i < numVerticesPerRadius * 2; i++)
         {
             var boundedT = t % perimeter;
             //TODO: Check Correctness
-            if ( boundedT < secStart )
+            if (boundedT < secStart)
             {
                 currSecIndex = 0;
                 secStart = sections[0];
                 secEnd = sections[1];
             }
 
-            while ( boundedT >= sections[(currSecIndex + 1) % sections.Length] )
+            while (boundedT >= sections[(currSecIndex + 1) % sections.Length])
             {
                 currSecIndex = (currSecIndex + 1) % sections.Length;
                 secStart = sections[currSecIndex];
@@ -243,21 +241,21 @@ public partial class RoundedPolygon
             }
 
             var tInSection = boundedT - secStart;
-            var tProportion = (secEnd - secStart) <= Utils.DistanceEpsilon ? 0d : tInSection / (secEnd - secStart);
+            var tProportion = secEnd - secStart <= Utils.DistanceEpsilon ? 0d : tInSection / (secEnd - secStart);
 
             var currRadius = inner ? endcapRadius * innerRadiusRatio : endcapRadius;
 
-            Point vertex = currSecIndex switch
+            var vertex = currSecIndex switch
             {
                 0 => new Point(currRadius, tProportion * vSegHalf),
                 1 => Utils.RadialToCartesian(currRadius, tProportion * (Math.PI / 2d)) + rectBR,
                 2 => new Point(hSegHalf - tProportion * hSegLen, currRadius),
-                3 => Utils.RadialToCartesian(currRadius, (Math.PI / 2d) + tProportion * (Math.PI / 2d)) + rectBL,
+                3 => Utils.RadialToCartesian(currRadius, Math.PI / 2d + tProportion * (Math.PI / 2d)) + rectBL,
                 4 => new Point(-currRadius, vSegHalf - tProportion * vSegLen),
                 5 => Utils.RadialToCartesian(currRadius, Math.PI + tProportion * (Math.PI / 2d)) + rectTL,
                 6 => new Point(-hSegHalf + tProportion * hSegLen, -currRadius),
-                7 => Utils.RadialToCartesian(currRadius, (Math.PI * 1.5d) + tProportion * (Math.PI / 2d)) + rectTR,
-                _ => new Point(currRadius, -vSegHalf + tProportion * vSegHalf),
+                7 => Utils.RadialToCartesian(currRadius, Math.PI * 1.5d + tProportion * (Math.PI / 2d)) + rectTR,
+                _ => new Point(currRadius, -vSegHalf + tProportion * vSegHalf)
             };
 
             result[vertexIndex++] = new Point(vertex.X + center.X, vertex.Y + center.Y);
@@ -269,5 +267,8 @@ public partial class RoundedPolygon
         return result;
     }
 
-    private static double Interpolate (double from, double to, double t) => from + (to - from) * t;
+    private static double Interpolate(double from, double to, double t)
+    {
+        return from + (to - from) * t;
+    }
 }

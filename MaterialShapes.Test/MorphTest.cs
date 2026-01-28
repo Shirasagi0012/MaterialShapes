@@ -11,7 +11,7 @@ public class MorphTest
     private readonly RoundedPolygon _poly2 = RoundedPolygon.FromVertexCount(4, center: new Point(0.5, 0.5));
 
     [Fact]
-    public void CubicsTest ( )
+    public void CubicsTest()
     {
         var morph11 = new Morph(_poly1, _poly1);
         var p1Cubics = _poly1.Cubics;
@@ -23,16 +23,13 @@ public class MorphTest
         {
             var matched = false;
             foreach ( var p1Cubic in p1Cubics )
-            {
                 if ( CubicsEqualish(morphCubic, p1Cubic) )
                 {
                     matched = true;
                     break;
                 }
-            }
 
             Assert.True(matched);
         }
     }
-
 }

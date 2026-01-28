@@ -6,26 +6,26 @@ namespace MaterialShapes.Test;
 public class FeaturesTest
 {
     [Fact]
-    public void CannotBuildEmptyFeatures ( )
+    public void CannotBuildEmptyFeatures()
     {
-        Assert.Throws<ArgumentException>(( ) => Feature.BuildConvexCorner([ ]));
-        Assert.Throws<ArgumentException>(( ) => Feature.BuildConcaveCorner([ ]));
-        Assert.Throws<ArgumentException>(( ) => Feature.BuildIgnorableFeature([ ]));
+        Assert.Throws<ArgumentException>(() => Feature.BuildConvexCorner([]));
+        Assert.Throws<ArgumentException>(() => Feature.BuildConcaveCorner([]));
+        Assert.Throws<ArgumentException>(() => Feature.BuildIgnorableFeature([]));
     }
 
     [Fact]
-    public void CannotBuildNonContinuousFeatures ( )
+    public void CannotBuildNonContinuousFeatures()
     {
         var cubic1 = CubicBezier.StraightLine(new Point(0, 0), new Point(1, 1));
         var cubic2 = CubicBezier.StraightLine(new Point(10, 10), new Point(11, 11));
 
-        Assert.Throws<ArgumentException>(( ) => Feature.BuildConvexCorner([cubic1, cubic2]));
-        Assert.Throws<ArgumentException>(( ) => Feature.BuildConcaveCorner([cubic1, cubic2]));
-        Assert.Throws<ArgumentException>(( ) => Feature.BuildIgnorableFeature([cubic1, cubic2]));
+        Assert.Throws<ArgumentException>(() => Feature.BuildConvexCorner([cubic1, cubic2]));
+        Assert.Throws<ArgumentException>(() => Feature.BuildConcaveCorner([cubic1, cubic2]));
+        Assert.Throws<ArgumentException>(() => Feature.BuildIgnorableFeature([cubic1, cubic2]));
     }
 
     [Fact]
-    public void BuildsConcaveCorner ( )
+    public void BuildsConcaveCorner()
     {
         var cubic = CubicBezier.StraightLine(new Point(0, 0), new Point(1, 0));
         var actual = Feature.BuildConcaveCorner([cubic]);
@@ -38,7 +38,7 @@ public class FeaturesTest
     }
 
     [Fact]
-    public void BuildsConvexCorner ( )
+    public void BuildsConvexCorner()
     {
         var cubic = CubicBezier.StraightLine(new Point(0, 0), new Point(1, 0));
         var actual = Feature.BuildConvexCorner([cubic]);
@@ -51,7 +51,7 @@ public class FeaturesTest
     }
 
     [Fact]
-    public void BuildsEdge ( )
+    public void BuildsEdge()
     {
         var cubic = CubicBezier.StraightLine(new Point(0, 0), new Point(1, 0));
         var actual = Feature.BuildEdge(cubic);
@@ -64,7 +64,7 @@ public class FeaturesTest
     }
 
     [Fact]
-    public void BuildsIgnorableAsEdge ( )
+    public void BuildsIgnorableAsEdge()
     {
         var cubic = CubicBezier.StraightLine(new Point(0, 0), new Point(1, 0));
         var actual = Feature.BuildIgnorableFeature([cubic]);

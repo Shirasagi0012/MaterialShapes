@@ -15,7 +15,7 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
     public IReadOnlyList<CubicBezier> Cubics => _cubics;
     public IReadOnlyList<Feature> Features => _features;
 
-    private List<CubicBezier> BuildCubicsList ( )
+    private List<CubicBezier> BuildCubicsList()
     {
         // The first/last mechanism here ensures that the final anchor point in the shape
         // exactly matches the first anchor point. There can be rendering artifacts introduced
@@ -28,7 +28,7 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
         List<CubicBezier>? firstFeatureSplitStart = null;
         List<CubicBezier>? firstFeatureSplitEnd = null;
 
-        if ( _features.Count > 0 && _features[0].Cubics.Count == 3 )
+        if (_features.Count > 0 && _features[0].Cubics.Count == 3)
         {
             var centerCubic = _features[0].Cubics[1];
             var (start, end) = centerCubic.Split(0.5);
@@ -37,17 +37,17 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
         }
 
         // Iterating one past the features list size allows us to insert the initial split cubic if it exists.
-        for ( var i = 0; i <= _features.Count; i++ )
+        for (var i = 0; i <= _features.Count; i++)
         {
             IReadOnlyList<CubicBezier> featureCubics;
 
-            if ( i == 0 && firstFeatureSplitEnd is not null )
+            if (i == 0 && firstFeatureSplitEnd is { })
             {
                 featureCubics = firstFeatureSplitEnd;
             }
-            else if ( i == _features.Count )
+            else if (i == _features.Count)
             {
-                if ( firstFeatureSplitStart is not null )
+                if (firstFeatureSplitStart is { })
                     featureCubics = firstFeatureSplitStart;
                 else
                     break;
@@ -57,12 +57,11 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
                 featureCubics = _features[i].Cubics;
             }
 
-            foreach ( var cubic in featureCubics )
-            {
+            foreach (var cubic in featureCubics)
                 // Skip zero-length curves; they add nothing and can trigger rendering artifacts.
-                if ( !cubic.IsZeroLength )
+                if (!cubic.IsZeroLength)
                 {
-                    if ( lastCubic is not null )
+                    if (lastCubic is { })
                         cubics.Add(lastCubic.Value);
 
                     lastCubic = cubic;
@@ -73,7 +72,7 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
                     // Dropping several zero-ish length curves in a row can lead to enough discontinuity
                     // to throw an exception later, even though the distances are quite small.
                     // Account for that by making the last cubic use the latest anchor point, always.
-                    if ( lastCubic is null )
+                    if (lastCubic is null)
                         continue;
 
                     var updated = new CubicBezier(lastCubic.Value)
@@ -82,10 +81,9 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
                     };
                     lastCubic = updated;
                 }
-            }
         }
 
-        if ( lastCubic is not null && firstCubic is not null )
+        if (lastCubic is { } && firstCubic is { })
         {
             var last = lastCubic.Value;
             var first = firstCubic.Value;
@@ -110,107 +108,110 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
         return cubics;
     }
 
-    private RoundedPolygon (List<Feature> features, Point center)
+    private RoundedPolygon(List<Feature> features, Point center)
     {
         Center = center;
         _features = features;
         _cubics = BuildCubicsList();
 
-        if ( _cubics.Count == 0 )
+        if (_cubics.Count == 0)
             throw new ArgumentException("RoundedPolygon cannot be empty.");
 
         var prevCubic = _cubics[^1];
-        foreach ( var cubic in _cubics )
+        foreach (var cubic in _cubics)
         {
-            if ( Math.Abs(cubic.Anchor0.X - prevCubic.Anchor1.X) > Utils.DistanceEpsilon ||
-                Math.Abs(cubic.Anchor0.Y - prevCubic.Anchor1.Y) > Utils.DistanceEpsilon )
-            {
+            if (Math.Abs(cubic.Anchor0.X - prevCubic.Anchor1.X) > Utils.DistanceEpsilon ||
+                Math.Abs(cubic.Anchor0.Y - prevCubic.Anchor1.Y) > Utils.DistanceEpsilon)
                 throw new ArgumentException(
                     "RoundedPolygon must be contiguous, with the anchor points of all curves " +
                     "matching the anchor points of the preceding and succeeding cubics");
-            }
 
             prevCubic = cubic;
         }
     }
 
-    private RoundedPolygon ((List<Feature> features, Point center) built) : this(built.features, built.center)
+    private RoundedPolygon((List<Feature> features, Point center) built) : this(built.features, built.center)
     {
     }
 
-    private RoundedPolygon (
+    private RoundedPolygon(
         int numVertices,
         double radius = 1,
         Point center = default,
         CornerRounding rounding = default,
-        IReadOnlyList<CornerRounding>? perVertexRounding = null)
+        IReadOnlyList<CornerRounding>? perVertexRounding = null
+    )
         : this(BuildFromVertexCount(numVertices, radius, center, rounding, perVertexRounding))
     {
     }
 
-    private RoundedPolygon (
-        Point[ ] vertices,
+    private RoundedPolygon(
+        Point[] vertices,
         CornerRounding rounding = default,
         IReadOnlyList<CornerRounding>? perVertexRounding = null,
-        Point? center = null)
+        Point? center = null
+    )
         : this(BuildFromVertices(vertices, rounding, perVertexRounding, center))
     {
     }
 
-    public static RoundedPolygon FromVertexCount (
+    public static RoundedPolygon FromVertexCount(
         int numVertices,
         double radius = 1,
         Point center = default,
         CornerRounding rounding = default,
-        IReadOnlyList<CornerRounding>? perVertexRounding = null)
+        IReadOnlyList<CornerRounding>? perVertexRounding = null
+    )
     {
         return new RoundedPolygon(numVertices, radius, center, rounding, perVertexRounding);
     }
 
-    public static RoundedPolygon FromFeatures (IReadOnlyList<Feature> features, Point? center = null)
+    public static RoundedPolygon FromFeatures(IReadOnlyList<Feature> features, Point? center = null)
     {
-        if ( features.Count < 2 )
+        if (features.Count < 2)
             throw new ArgumentException("Polygons must have at least 2 features", nameof(features));
 
         var vertices = new List<double>(features.Count * 2);
-        foreach ( var feature in features )
+        foreach (var feature in features)
+        foreach (var cubic in feature.Cubics)
         {
-            foreach ( var cubic in feature.Cubics )
-            {
-                vertices.Add(cubic.Anchor0.X);
-                vertices.Add(cubic.Anchor0.Y);
-            }
+            vertices.Add(cubic.Anchor0.X);
+            vertices.Add(cubic.Anchor0.Y);
         }
 
         var estimatedCenter = CalculateCenter(vertices.ToArray());
         return new RoundedPolygon(features.ToList(), center ?? estimatedCenter);
     }
 
-    public static RoundedPolygon FromVertices (
-        Point[ ] vertices,
+    public static RoundedPolygon FromVertices(
+        Point[] vertices,
         CornerRounding rounding = default,
         IReadOnlyList<CornerRounding>? perVertexRounding = null,
-        Point? center = null)
+        Point? center = null
+    )
     {
         return new RoundedPolygon(vertices, rounding, perVertexRounding, center);
     }
 
-    public RoundedPolygon (RoundedPolygon source) : this(new List<Feature>(source._features), source.Center)
+    public RoundedPolygon(RoundedPolygon source) : this(new List<Feature>(source._features), source.Center)
     {
     }
 
-    public RoundedPolygon Transformed (Func<Point, Point> f)
+    public RoundedPolygon Transformed(Func<Point, Point> f)
     {
         var center = f(Center);
         var features = _features.Select(x => x.Transformed(f)).ToList();
         return new RoundedPolygon(features, center);
     }
 
-    public RoundedPolygon Transformed (Matrix matrix) => Transformed(matrix.Transform);
-
-    public RoundedPolygon Normalized ( )
+    public RoundedPolygon Transformed(Matrix matrix)
     {
-        Rect bounds = CalculateBounds();
+        return Transformed(matrix.Transform);
+    }
+
+    public RoundedPolygon Normalized()
+    {
+        var bounds = CalculateBounds();
         var side = Math.Max(bounds.Width, bounds.Height);
         var offsetX = (side - bounds.Width) / 2 - bounds.X;
         var offsetY = (side - bounds.Height) / 2 - bounds.Y;
@@ -220,13 +221,13 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
         ));
     }
 
-    public override string ToString ( )
+    public override string ToString()
     {
         var sb = new StringBuilder();
         sb.Append("[RoundedPolygon. Cubics = ");
-        sb.Append(string.Join(", ", _cubics));
+        sb.Append(String.Join(", ", _cubics));
         sb.Append(" || Features = ");
-        sb.Append(string.Join(", ", _features));
+        sb.Append(String.Join(", ", _features));
         sb.Append(" || Center = (");
         sb.Append(CenterX);
         sb.Append(", ");
@@ -236,10 +237,10 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
     }
 
 
-    public Rect CalculateMaxBounds ( )
+    public Rect CalculateMaxBounds()
     {
         double maxDistSquared = 0;
-        foreach ( var cubic in _cubics )
+        foreach (var cubic in _cubics)
         {
             var anchorDistance = Utils.DistanceSquared(cubic.Anchor0 - Center);
             var middlePoint = cubic.PointOnCurve(0.5);
@@ -257,14 +258,14 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
     }
 
 
-    public Rect CalculateBounds (bool approximate = true)
+    public Rect CalculateBounds(bool approximate = true)
     {
         Rect bounds;
-        var minX = double.MaxValue;
-        var minY = double.MaxValue;
-        var maxX = double.MinValue;
-        var maxY = double.MinValue;
-        foreach ( var cubic in _cubics )
+        var minX = Double.MaxValue;
+        var minY = Double.MaxValue;
+        var maxX = Double.MinValue;
+        var maxY = Double.MinValue;
+        foreach (var cubic in _cubics)
         {
             bounds = cubic.CalculateBounds(approximate);
             minX = Math.Min(minX, bounds.Left);
@@ -280,36 +281,37 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
             maxY - minY);
     }
 
-    public bool Equals (RoundedPolygon? other)
+    public bool Equals(RoundedPolygon? other)
     {
-        if ( ReferenceEquals(null, other) )
+        if (ReferenceEquals(null, other))
             return false;
-        if ( ReferenceEquals(this, other) )
+        if (ReferenceEquals(this, other))
             return true;
         return _features.SequenceEqual(other._features);
     }
 
-    public override bool Equals (object? obj)
+    public override bool Equals(object? obj)
     {
         return obj is RoundedPolygon other && Equals(other);
     }
 
-    public override int GetHashCode ( )
+    public override int GetHashCode()
     {
         var hash = new HashCode();
-        foreach ( var feature in _features )
+        foreach (var feature in _features)
             hash.Add(feature);
         return hash.ToHashCode();
     }
 
-    private static (List<Feature> features, Point center) BuildFromVertexCount (
+    private static (List<Feature> features, Point center) BuildFromVertexCount(
         int numVertices,
         double radius,
         Point center,
         CornerRounding rounding,
-        IReadOnlyList<CornerRounding>? perVertexRounding)
+        IReadOnlyList<CornerRounding>? perVertexRounding
+    )
     {
-        if ( numVertices < 3 )
+        if (numVertices < 3)
             throw new ArgumentOutOfRangeException(nameof(numVertices), "Polygons must have at least 3 vertices.");
 
         return BuildFromVertices(
@@ -319,26 +321,25 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
             center);
     }
 
-    private static (List<Feature> features, Point center) BuildFromVertices (
-    Point[ ] vertices,
-    CornerRounding rounding,
-    IReadOnlyList<CornerRounding>? perVertexRounding,
-    Point? center)
+    private static (List<Feature> features, Point center) BuildFromVertices(
+        Point[] vertices,
+        CornerRounding rounding,
+        IReadOnlyList<CornerRounding>? perVertexRounding,
+        Point? center
+    )
     {
-        if ( vertices.Length < 3 )
+        if (vertices.Length < 3)
             throw new ArgumentException("Polygons must have at least 3 vertices", nameof(vertices));
 
-        if ( perVertexRounding is not null && perVertexRounding.Count != vertices.Length )
-        {
+        if (perVertexRounding is { } && perVertexRounding.Count != vertices.Length)
             throw new ArgumentException(
                 "perVertexRounding list should be either null or the same size as the number of vertices (vertices.Length)",
                 nameof(perVertexRounding));
-        }
 
         var corners = new List<List<CubicBezier>>();
         var n = vertices.Length;
         var roundedCorners = new List<RoundedCorner>(n);
-        for ( var i = 0; i < n; i++ )
+        for (var i = 0; i < n; i++)
         {
             var vtxRounding = perVertexRounding is null ? rounding : perVertexRounding[i];
             var prevIndex = (i + n - 1) % n;
@@ -352,7 +353,7 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
         }
 
         var cutAdjusts = new (double roundCutRatio, double cutRatio)[n];
-        for ( var ix = 0; ix < n; ix++ )
+        for (var ix = 0; ix < n; ix++)
         {
             var expectedRoundCut = roundedCorners[ix].ExpectedRoundCut + roundedCorners[(ix + 1) % n].ExpectedRoundCut;
             var expectedCut = roundedCorners[ix].ExpectedCut + roundedCorners[(ix + 1) % n].ExpectedCut;
@@ -361,24 +362,18 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
             var nextVtx = vertices[(ix + 1) % n];
             var sideSize = Utils.Distance(vtx.X - nextVtx.X, vtx.Y - nextVtx.Y);
 
-            if ( expectedRoundCut > sideSize )
-            {
+            if (expectedRoundCut > sideSize)
                 cutAdjusts[ix] = (sideSize / expectedRoundCut, 0);
-            }
-            else if ( expectedCut > sideSize )
-            {
+            else if (expectedCut > sideSize)
                 cutAdjusts[ix] = (1, (sideSize - expectedRoundCut) / (expectedCut - expectedRoundCut));
-            }
             else
-            {
                 cutAdjusts[ix] = (1, 1);
-            }
         }
 
-        for ( var i = 0; i < n; i++ )
+        for (var i = 0; i < n; i++)
         {
             var allowedCuts = new double[2];
-            for ( var delta = 0; delta <= 1; delta++ )
+            for (var delta = 0; delta <= 1; delta++)
             {
                 var (roundCutRatio, cutRatio) = cutAdjusts[(i + n - 1 + delta) % n];
                 allowedCuts[delta] =
@@ -386,11 +381,11 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
                     (roundedCorners[i].ExpectedCut - roundedCorners[i].ExpectedRoundCut) * cutRatio;
             }
 
-            corners.Add(roundedCorners[i].GetCubics(allowedCut0: allowedCuts[0], allowedCut1: allowedCuts[1]));
+            corners.Add(roundedCorners[i].GetCubics(allowedCuts[0], allowedCuts[1]));
         }
 
         var tempFeatures = new List<Feature>(n * 2);
-        for ( var i = 0; i < n; i++ )
+        for (var i = 0; i < n; i++)
         {
             var prevVtxIndex = (i + n - 1) % n;
             var nextVtxIndex = (i + 1) % n;
@@ -408,7 +403,7 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
         }
 
         var vertexArray = new double[vertices.Length * 2];
-        for ( var i = 0; i < vertices.Length; i++ )
+        for (var i = 0; i < vertices.Length; i++)
         {
             vertexArray[i * 2] = vertices[i].X;
             vertexArray[i * 2 + 1] = vertices[i].Y;
@@ -417,12 +412,12 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
         return (tempFeatures, center ?? CalculateCenter(vertexArray));
     }
 
-    private static Point CalculateCenter (double[ ] vertices)
+    private static Point CalculateCenter(double[] vertices)
     {
         double cumulativeX = 0;
         double cumulativeY = 0;
         var index = 0;
-        while ( index < vertices.Length )
+        while (index < vertices.Length)
         {
             cumulativeX += vertices[index++];
             cumulativeY += vertices[index++];
@@ -432,11 +427,11 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
         return new Point(cumulativeX / count, cumulativeY / count);
     }
 
-    private static Point[ ] VerticesFromNumVerts (int numVertices, double radius, Point center)
+    private static Point[] VerticesFromNumVerts(int numVertices, double radius, Point center)
     {
         var result = new Point[numVertices];
         var arrayIndex = 0;
-        for ( var i = 0; i < numVertices; i++ )
+        for (var i = 0; i < numVertices; i++)
         {
             var angle = Math.PI / numVertices * 2 * i;
             var vertex = Utils.RadialToCartesian(radius, angle) + center;
@@ -466,7 +461,7 @@ file sealed class RoundedCorner
 
     private Point _center;
 
-    internal RoundedCorner (Point p0, Point p1, Point p2, CornerRounding rounding)
+    internal RoundedCorner(Point p0, Point p1, Point p2, CornerRounding rounding)
     {
         _p0 = p0;
         _p1 = p1;
@@ -478,7 +473,7 @@ file sealed class RoundedCorner
         var d01 = v01.GetDistance();
         var d21 = v21.GetDistance();
 
-        if ( d01 > 0 && d21 > 0 )
+        if (d01 > 0 && d21 > 0)
         {
             _d1 = v01 / d01;
             _d2 = v21 / d21;
@@ -507,12 +502,12 @@ file sealed class RoundedCorner
         _center = default;
     }
 
-    internal List<CubicBezier> GetCubics (double allowedCut0, double allowedCut1)
+    internal List<CubicBezier> GetCubics(double allowedCut0, double allowedCut1)
     {
         var allowedCut = Math.Min(allowedCut0, allowedCut1);
-        if ( ExpectedRoundCut < Utils.DistanceEpsilon ||
+        if (ExpectedRoundCut < Utils.DistanceEpsilon ||
             allowedCut < Utils.DistanceEpsilon ||
-            _cornerRadius < Utils.DistanceEpsilon )
+            _cornerRadius < Utils.DistanceEpsilon)
         {
             _center = _p1;
             return [CubicBezier.StraightLine(_p1, _p1)];
@@ -553,23 +548,24 @@ file sealed class RoundedCorner
                     actualR)
                 .Reversed();
 
-        return [
+        return
+        [
             flanking0,
             CubicBezier.CircularArc(_center, flanking0.Anchor1, flanking2.Anchor0),
-            flanking2,
+            flanking2
         ];
     }
 
-    private double CalculateActualSmoothingValue (double allowedCut)
+    private double CalculateActualSmoothingValue(double allowedCut)
     {
-        if ( allowedCut > ExpectedCut )
+        if (allowedCut > ExpectedCut)
             return _smoothing;
-        if ( allowedCut > ExpectedRoundCut )
+        if (allowedCut > ExpectedRoundCut)
             return _smoothing * (allowedCut - ExpectedRoundCut) / (ExpectedCut - ExpectedRoundCut);
         return 0;
     }
 
-    private static CubicBezier ComputeFlankingCurve (
+    private static CubicBezier ComputeFlankingCurve(
         double actualRoundCut,
         double actualSmoothingValues,
         Point corner,
@@ -577,7 +573,8 @@ file sealed class RoundedCorner
         Point circleSegmentIntersection,
         Point otherCircleSegmentIntersection,
         Point circleCenter,
-        double actualR)
+        double actualR
+    )
     {
         var sideDirection = (sideStart - corner).GetDirection();
         var curveStart = corner + sideDirection * actualRoundCut * (1 + actualSmoothingValues);
@@ -593,7 +590,8 @@ file sealed class RoundedCorner
         var curveEnd = circleCenter + Utils.DirectionVector(p.X - circleCenter.X, p.Y - circleCenter.Y) * actualR;
 
         var circleTangent = (curveEnd - circleCenter).Rotate90();
-        var anchorEnd = LineIntersection(sideStart, sideDirection, curveEnd, circleTangent) ?? circleSegmentIntersection;
+        var anchorEnd = LineIntersection(sideStart, sideDirection, curveEnd, circleTangent) ??
+                        circleSegmentIntersection;
 
         var anchorStart = new Point(
             (curveStart.X + anchorEnd.X * 2) / 3,
@@ -602,15 +600,15 @@ file sealed class RoundedCorner
         return new CubicBezier(curveStart, anchorStart, anchorEnd, curveEnd);
     }
 
-    private static Point? LineIntersection (Point p0, Point d0, Point p1, Point d1)
+    private static Point? LineIntersection(Point p0, Point d0, Point p1, Point d1)
     {
         var rotatedD1 = d1.Rotate90();
         var den = d0.DotProduct(rotatedD1);
-        if ( Math.Abs(den) < Utils.DistanceEpsilon )
+        if (Math.Abs(den) < Utils.DistanceEpsilon)
             return null;
 
         var num = (p1 - p0).DotProduct(rotatedD1);
-        if ( Math.Abs(den) < Utils.DistanceEpsilon * Math.Abs(num) )
+        if (Math.Abs(den) < Utils.DistanceEpsilon * Math.Abs(num))
             return null;
 
         var k = num / den;

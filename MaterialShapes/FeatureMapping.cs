@@ -3,12 +3,13 @@ using MeasuredFeatures = System.Collections.Generic.List<MaterialShapes.Progress
 
 namespace MaterialShapes;
 
-internal record class ProgressableFeature (double Progress, Feature Feature);
-internal record class DistanceVertex (double Distance, ProgressableFeature F1, ProgressableFeature F2);
+internal record class ProgressableFeature(double Progress, Feature Feature);
+
+internal record class DistanceVertex(double Distance, ProgressableFeature F1, ProgressableFeature F2);
 
 public static class FeatureMapping
 {
-    internal static DoubleMapper FeatureMapper (MeasuredFeatures features1, MeasuredFeatures features2)
+    internal static DoubleMapper FeatureMapper(MeasuredFeatures features1, MeasuredFeatures features2)
     {
         var filteredFeatures1 = features1
             .Where(f => f.Feature is CornerFeature)
@@ -23,16 +24,21 @@ public static class FeatureMapping
         return dm;
     }
 
-    internal static List<ValueTuple<double, double>> DoMapping (MeasuredFeatures features1, MeasuredFeatures features2)
+    internal static List<ValueTuple<double, double>> DoMapping(MeasuredFeatures features1, MeasuredFeatures features2)
     {
-        var distanceVertexList = (from f1 in features1 from f2 in features2 let d = FeatureDistSquared(f1.Feature, f2.Feature) where d != float.MaxValue select new DistanceVertex(d, f1, f2)).ToList();
+        var distanceVertexList =
+            (from f1 in features1
+             from f2 in features2
+             let d = FeatureDistSquared(f1.Feature, f2.Feature)
+             where d != Single.MaxValue
+             select new DistanceVertex(d, f1, f2)).ToList();
 
         distanceVertexList.Sort((a, b) => a.Distance.CompareTo(b.Distance));
 
-        if ( distanceVertexList.Count == 0 )
+        if (distanceVertexList.Count == 0)
             return IdentityMapping;
 
-        if ( distanceVertexList.Count == 1 )
+        if (distanceVertexList.Count == 1)
         {
             var it = distanceVertexList[0];
             var f1 = it.F1.Progress;
@@ -45,53 +51,47 @@ public static class FeatureMapping
         }
 
         var helper = new MappingHelper();
-        foreach ( var vertex in distanceVertexList )
-        {
+        foreach (var vertex in distanceVertexList)
             helper.AddMapping(vertex.F1, vertex.F2);
-        }
 
         return helper.Mapping;
     }
 
     private static readonly List<ValueTuple<double, double>> IdentityMapping = [(0.0, 0.0), (0.5, 0.5)];
 
-    class MappingHelper
+    private class MappingHelper
     {
-        public List<ValueTuple<double, double>> Mapping { get; } = [ ];
+        public List<ValueTuple<double, double>> Mapping { get; } = [];
         private List<ProgressableFeature> _usedF1 = [];
         private List<ProgressableFeature> _usedF2 = [];
 
-        public void AddMapping (ProgressableFeature f1, ProgressableFeature f2)
+        public void AddMapping(ProgressableFeature f1, ProgressableFeature f2)
         {
-            if ( _usedF1.Contains(f1) || _usedF2.Contains(f2) )
+            if (_usedF1.Contains(f1) || _usedF2.Contains(f2))
                 return;
 
             var index = Mapping.Select(m => m.Item1)
                 .ToList().BinarySearch(f1.Progress);
 
-            if ( index >= 0 )
+            if (index >= 0)
                 throw new InvalidOperationException("There can't be two features with the same progress");
 
-            int insertionIndex = ~index;
-            int n = Mapping.Count;
+            var insertionIndex = ~index;
+            var n = Mapping.Count;
 
-            if ( n >= 1 )
+            if (n >= 1)
             {
                 var (before1, before2) = Mapping[(insertionIndex + n - 1) % n];
                 var (after1, after2) = Mapping[insertionIndex % n];
 
-                if ( DoubleMapper.ProgressDistance(f1.Progress, before1) < Utils.DistanceEpsilon ||
+                if (DoubleMapper.ProgressDistance(f1.Progress, before1) < Utils.DistanceEpsilon ||
                     DoubleMapper.ProgressDistance(f1.Progress, after1) < Utils.DistanceEpsilon ||
                     DoubleMapper.ProgressDistance(f2.Progress, before2) < Utils.DistanceEpsilon ||
-                    DoubleMapper.ProgressDistance(f2.Progress, after2) < Utils.DistanceEpsilon )
-                {
+                    DoubleMapper.ProgressDistance(f2.Progress, after2) < Utils.DistanceEpsilon)
                     return;
-                }
 
-                if ( n > 1 && !DoubleMapper.IsProgressInRange(f2.Progress, before2, after2) )
-                {
+                if (n > 1 && !DoubleMapper.IsProgressInRange(f2.Progress, before2, after2))
                     return;
-                }
             }
 
             Mapping.Insert(insertionIndex, (f1.Progress, f2.Progress));
@@ -100,14 +100,12 @@ public static class FeatureMapping
         }
     }
 
-    internal static double FeatureDistSquared (Feature f1, Feature f2)
+    internal static double FeatureDistSquared(Feature f1, Feature f2)
     {
         // 1. 处理凹凸性匹配限制 (Concave-Convex matching)
         // 使用 C# 的模式匹配 (Pattern Matching) 语法同时检查类型和属性
-        if ( f1 is CornerFeature c1 && f2 is CornerFeature c2 && c1.Convex != c2.Convex )
-        {
+        if (f1 is CornerFeature c1 && f2 is CornerFeature c2 && c1.Convex != c2.Convex)
             return Single.MaxValue;
-        }
 
         // 2. 计算代表点之间的距离平方
         var p1 = FeatureRepresentativePoint(f1);
@@ -116,7 +114,7 @@ public static class FeatureMapping
         return (p1 - p2).GetDistanceSquared();
     }
 
-    internal static Point FeatureRepresentativePoint (Feature feature)
+    internal static Point FeatureRepresentativePoint(Feature feature)
     {
         // 获取第一个和最后一个 Cubic 曲线
         var firstCubic = feature.Cubics.First();
@@ -132,19 +130,21 @@ public static class FeatureMapping
 
 internal class DoubleMapper
 {
-    internal static bool IsProgressInRange (double progress, double progressFrom, double progressTo) =>
-        progressTo >= progressFrom
+    internal static bool IsProgressInRange(double progress, double progressFrom, double progressTo)
+    {
+        return progressTo >= progressFrom
             ? progress >= progressFrom && progress <= progressTo
             : progress >= progressFrom || progress <= progressTo;
+    }
 
-    private static double LinearMap (IReadOnlyList<double> xValues, IReadOnlyList<double> yValues, double x)
+    private static double LinearMap(IReadOnlyList<double> xValues, IReadOnlyList<double> yValues, double x)
     {
         // TODO: Cleanup
         // x = Utils.PositiveModulo(x, 1d);
         // // Treat 1 as 0 (progress wraps).
         // if (x >= 1d) x = 0d;
 
-        if ( x is < 0 or > 1 )
+        if (x is < 0 or > 1)
             throw new ArgumentOutOfRangeException(nameof(x));
 
         var segmentStartIndex = Enumerable.Range(0, xValues.Count)
@@ -158,35 +158,33 @@ internal class DoubleMapper
         return Utils.PositiveModulo(yValues[segmentStartIndex] + segmentSizeY * positionInSegment, 1d);
     }
 
-    private static void ValidateProgress (List<double> p)
+    private static void ValidateProgress(List<double> p)
     {
         var prev = p.Last();
         var wraps = 0;
-        foreach ( var curr in p )
+        foreach (var curr in p)
         {
-            if ( curr is < 0D or >= 1D )
+            if (curr is < 0D or >= 1D)
                 throw new ArgumentException(
-                    $"FloatMapping - Progress outside of range: {string.Join(", ", p)}");
+                    $"FloatMapping - Progress outside of range: {String.Join(", ", p)}");
 
-            if ( ProgressDistance(curr, prev) <= Utils.DistanceEpsilon )
+            if (ProgressDistance(curr, prev) <= Utils.DistanceEpsilon)
                 throw new ArgumentException(
-                    $"FloatMapping - Progress repeats a value: {string.Join(", ", p)}");
+                    $"FloatMapping - Progress repeats a value: {String.Join(", ", p)}");
 
-            if ( curr < prev )
+            if (curr < prev)
             {
                 wraps++;
-                if ( wraps > 1 )
-                {
+                if (wraps > 1)
                     throw new ArgumentException(
-                        $"FloatMapping - Progress wraps more than once: {string.Join(", ", p)}");
-                }
+                        $"FloatMapping - Progress wraps more than once: {String.Join(", ", p)}");
             }
 
             prev = curr;
         }
     }
 
-    internal static double ProgressDistance (double a, double b)
+    internal static double ProgressDistance(double a, double b)
     {
         var diff = Math.Abs(a - b);
         return Math.Min(diff, 1 - diff);
@@ -196,24 +194,32 @@ internal class DoubleMapper
     private List<double> _sourceValues;
     private List<double> _targetValues;
 
-    public DoubleMapper (params ValueTuple<double, double>[ ] mappings)
+    public DoubleMapper(params ValueTuple<double, double>[] mappings)
     {
         _mappings = mappings;
-        _sourceValues = new(_mappings.Length);
-        _targetValues = new(_mappings.Length);
-        foreach ( var m in mappings )
+        _sourceValues = new List<double>(_mappings.Length);
+        _targetValues = new List<double>(_mappings.Length);
+        foreach (var m in mappings)
         {
             _sourceValues.Add(m.Item1);
             _targetValues.Add(m.Item2);
         }
+
         // Both source values and target values should be monotonically increasing, with the
         // exception of maybe one time (since progress wraps around).
         ValidateProgress(_sourceValues);
         ValidateProgress(_targetValues);
     }
 
-    public double Map (double x) => LinearMap(_sourceValues, _targetValues, x);
-    public double MapBack (double x) => LinearMap(_targetValues, _sourceValues, x);
+    public double Map(double x)
+    {
+        return LinearMap(_sourceValues, _targetValues, x);
+    }
+
+    public double MapBack(double x)
+    {
+        return LinearMap(_targetValues, _sourceValues, x);
+    }
 
     public static DoubleMapper Identity { get; } = new((0, 0), (0.5, 0.5));
 }

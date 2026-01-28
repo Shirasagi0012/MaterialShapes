@@ -5,20 +5,21 @@ namespace MaterialShapes.Test;
 
 public class PolygonTest
 {
-    private const double Epsilon = 1e-4;
-
     private readonly RoundedPolygon _square = RoundedPolygon.FromVertexCount(4);
-    private readonly RoundedPolygon _roundedSquare = RoundedPolygon.FromVertexCount(4, rounding: new CornerRounding(0.2));
+
+    private readonly RoundedPolygon _roundedSquare =
+        RoundedPolygon.FromVertexCount(4, rounding: new CornerRounding(0.2));
+
     private readonly RoundedPolygon _pentagon = RoundedPolygon.FromVertexCount(5);
 
     [Fact]
-    public void ConstructionTest ( )
+    public void ConstructionTest()
     {
         var min = new Point(-1, -1);
         var max = new Point(1, 1);
         AssertInBounds(_square.Cubics, min, max);
 
-        var doubleSquare = RoundedPolygon.FromVertexCount(4, radius: 2);
+        var doubleSquare = RoundedPolygon.FromVertexCount(4, 2);
         min = ScalePoint(min, 2);
         max = ScalePoint(max, 2);
         AssertInBounds(doubleSquare.Cubics, min, max);
@@ -48,7 +49,7 @@ public class PolygonTest
                 Add(p0, offset),
                 Add(p1, offset),
                 Add(p2, offset),
-                Add(p3, offset),
+                Add(p3, offset)
             ],
             center: offset);
         min = new Point(0, 1);
@@ -57,7 +58,7 @@ public class PolygonTest
     }
 
     [Fact]
-    public void BoundsTest ( )
+    public void BoundsTest()
     {
         var bounds = _square.CalculateBounds();
         AssertEqualish(-1, bounds.Left);
@@ -65,14 +66,14 @@ public class PolygonTest
         AssertEqualish(1, bounds.Right);
         AssertEqualish(1, bounds.Bottom);
 
-        var betterBounds = _square.CalculateBounds(approximate: false);
+        var betterBounds = _square.CalculateBounds(false);
         AssertEqualish(-1, betterBounds.Left);
         AssertEqualish(-1, betterBounds.Top);
         AssertEqualish(1, betterBounds.Right);
         AssertEqualish(1, betterBounds.Bottom);
 
         bounds = _roundedSquare.CalculateBounds();
-        betterBounds = _roundedSquare.CalculateBounds(approximate: false);
+        betterBounds = _roundedSquare.CalculateBounds(false);
         Assert.True(
             betterBounds.Width < bounds.Width,
             $"bounds {bounds.Left}, {bounds.Top}, {bounds.Right}, {bounds.Bottom}, " +
@@ -84,19 +85,19 @@ public class PolygonTest
     }
 
     [Fact]
-    public void CenterTest ( )
+    public void CenterTest()
     {
         AssertPointEqualish(new Point(0, 0), new Point(_square.CenterX, _square.CenterY));
     }
 
     [Fact]
-    public void TransformTest ( )
+    public void TransformTest()
     {
         var squareCopy = _square.Transformed(IdentityTransform());
         var n = _square.Cubics.Count;
 
         Assert.Equal(n, squareCopy.Cubics.Count);
-        for ( var i = 0; i < n; i++ )
+        for (var i = 0; i < n; i++)
             AssertCubicsEqualish(_square.Cubics[i], squareCopy.Cubics[i]);
 
         var offset = new Point(1, 2);
@@ -104,7 +105,7 @@ public class PolygonTest
         var translator = TranslateTransform(offset.X, offset.Y);
         var translatedSquareCubics = _square.Transformed(translator).Cubics;
 
-        for ( var i = 0; i < squareCubics.Count; i++ )
+        for (var i = 0; i < squareCubics.Count; i++)
         {
             AssertPointEqualish(Add(squareCubics[i].Anchor0, offset), translatedSquareCubics[i].Anchor0);
             AssertPointEqualish(Add(squareCubics[i].Control0, offset), translatedSquareCubics[i].Control0);
@@ -114,7 +115,7 @@ public class PolygonTest
     }
 
     [Fact]
-    public void FeaturesTest ( )
+    public void FeaturesTest()
     {
         var squareFeatures = _square.Features;
         var nonzero = NonZeroCubics(squareFeatures.SelectMany(f => f.Cubics).ToList());
@@ -127,45 +128,43 @@ public class PolygonTest
     }
 
     [Fact]
-    public void EmptyPolygonTest ( )
+    public void EmptyPolygonTest()
     {
-        var poly = RoundedPolygon.FromVertexCount(6, radius: 0, rounding: new CornerRounding(0.1));
-        Assert.Equal(1, poly.Cubics.Count);
+        var poly = RoundedPolygon.FromVertexCount(6, 0, rounding: new CornerRounding(0.1));
+        Assert.Single(poly.Cubics);
 
         var stillEmpty = poly.Transformed(ScaleTransform(10, 20));
-        Assert.Equal(1, stillEmpty.Cubics.Count);
+        Assert.Single(stillEmpty.Cubics);
         Assert.True(stillEmpty.Cubics[0].IsZeroLength);
     }
 
     [Fact]
-    public void EmptySideTest ( )
+    public void EmptySideTest()
     {
         var poly1 = RoundedPolygon.FromVertices(
-            [
-                new Point(0, 0),
-                new Point(1, 0),
-                new Point(1, 0),
-                new Point(0, 1),
-            ]);
+        [
+            new Point(0, 0),
+            new Point(1, 0),
+            new Point(1, 0),
+            new Point(0, 1)
+        ]);
 
         var poly2 = RoundedPolygon.FromVertices(
-            [
-                new Point(0, 0),
-                new Point(1, 0),
-                new Point(0, 1),
-            ]);
+        [
+            new Point(0, 0),
+            new Point(1, 0),
+            new Point(0, 1)
+        ]);
 
         AssertCubicListsEqualish(poly1.Cubics, poly2.Cubics);
     }
 
-    private static List<CubicBezier> NonZeroCubics (IReadOnlyList<CubicBezier> original)
+    private static List<CubicBezier> NonZeroCubics(IReadOnlyList<CubicBezier> original)
     {
         var result = new List<CubicBezier>();
-        for ( var i = 0; i < original.Count; i++ )
-        {
-            if ( !original[i].IsZeroLength )
+        for (var i = 0; i < original.Count; i++)
+            if (!original[i].IsZeroLength)
                 result.Add(original[i]);
-        }
         return result;
     }
 }
