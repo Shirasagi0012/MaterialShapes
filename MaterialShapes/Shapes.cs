@@ -7,7 +7,7 @@ public partial class RoundedPolygon
 {
     public static RoundedPolygon CreateCircle (
         int numVertices = 8,
-        double radius = 1F,
+        double radius = 1D,
         Point center = default)
     {
         if ( numVertices < 3 )
@@ -27,15 +27,15 @@ public partial class RoundedPolygon
     }
 
     public static RoundedPolygon CreateRectangle (
-        double width = 2F,
-        double height = 2F,
+        double width = 2D,
+        double height = 2D,
         CornerRounding? rounding = null,
         List<CornerRounding>? perVertexRounding = null,
         Point center = default
     )
     {
-        var halfWidth = width / 2F;
-        var halfHeight = height / 2F;
+        var halfWidth = width / 2D;
+        var halfHeight = height / 2D;
 
         var topLeft = new Point(center.X - halfWidth, center.Y - halfHeight);
         var topRight = new Point(center.X + halfWidth, center.Y - halfHeight);
@@ -52,8 +52,8 @@ public partial class RoundedPolygon
 
     public static RoundedPolygon CreateStar (
         int numVerticesPerRadius,
-        double radius = 1F,
-        double innerRadius = 0.5F,
+        double radius = 1D,
+        double innerRadius = 0.5D,
         CornerRounding? rounding = null,
         CornerRounding? innerRounding = null,
         List<CornerRounding>? perVertexRounding = null,
@@ -105,9 +105,9 @@ public partial class RoundedPolygon
     }
 
     public static RoundedPolygon CreatePill (
-        double width = 2F,
-        double height = 1F,
-        double smoothing = 0F,
+        double width = 2D,
+        double height = 1D,
+        double smoothing = 0D,
         Point center = default)
     {
         if ( width <= 0d || height <= 0d )
@@ -132,8 +132,8 @@ public partial class RoundedPolygon
     }
 
     public static RoundedPolygon CreatePillStar (
-        double width = 2F,
-        double height = 1F,
+        double width = 2D,
+        double height = 1D,
         int numVerticesPerRadius = 8,
         double innerRadiusRatio = 0.5,
         CornerRounding? rounding = null,

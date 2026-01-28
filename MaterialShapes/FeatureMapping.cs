@@ -40,7 +40,7 @@ public static class FeatureMapping
             return
             [
                 (f1, f2),
-                ((f1 + 0.5f) % 1f, (f2 + 0.5f) % 1f)
+                ((f1 + 0.5D) % 1D, (f2 + 0.5D) % 1D)
             ];
         }
 
@@ -123,8 +123,8 @@ public static class FeatureMapping
         var lastCubic = feature.Cubics.Last();
 
         // 计算起点和终点的中点作为代表点
-        var x = (firstCubic.Anchor0.X + lastCubic.Anchor1.X) / 2F;
-        var y = (firstCubic.Anchor0.Y + lastCubic.Anchor1.Y) / 2F;
+        var x = (firstCubic.Anchor0.X + lastCubic.Anchor1.X) / 2D;
+        var y = (firstCubic.Anchor0.Y + lastCubic.Anchor1.Y) / 2D;
 
         return new Point(x, y);
     }
@@ -164,7 +164,7 @@ internal class DoubleMapper
         var wraps = 0;
         foreach ( var curr in p )
         {
-            if ( curr is < 0f or >= 1f )
+            if ( curr is < 0D or >= 1D )
                 throw new ArgumentException(
                     $"FloatMapping - Progress outside of range: {string.Join(", ", p)}");
 
