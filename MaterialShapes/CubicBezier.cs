@@ -2,13 +2,18 @@
 
 namespace MaterialShapes;
 
-public struct CubicBezier (Point anchor0, Point control0, Point control1, Point anchor1) : IEquatable<CubicBezier>
+public readonly struct CubicBezier (Point anchor0, Point control0, Point control1, Point anchor1)
+    : IEquatable<CubicBezier>
 {
-    public Point Anchor0 = anchor0;
-    public Point Control0 = control0;
-    public Point Control1 = control1;
-    public Point Anchor1 = anchor1;
+    public readonly Point Anchor0 { get; init; } = anchor0;
+    public readonly Point Control0 { get; init; } = control0;
+    public readonly Point Control1 { get; init; } = control1;
+    public readonly Point Anchor1 { get; init; } = anchor1;
 
+
+    public CubicBezier (CubicBezier cubic) : this(cubic.Anchor0, cubic.Control0, cubic.Control1, cubic.Anchor1)
+    {
+    }
 
     /// <summary>
     /// Returns a point on the curve for parameter t, representing the proportional distance along
@@ -208,7 +213,10 @@ public struct CubicBezier (Point anchor0, Point control0, Point control1, Point 
         );
     }
 
-    public CubicBezier Reversed ( ) => new(Anchor1, Control1, Control0, Anchor0);
+    public CubicBezier Reversed ( )
+    {
+        return new CubicBezier(Anchor1, Control1, Control0, Anchor0);
+    }
 
     public static CubicBezier operator + (CubicBezier a, CubicBezier b)
     {
@@ -248,11 +256,13 @@ public struct CubicBezier (Point anchor0, Point control0, Point control1, Point 
 
     internal readonly CubicBezier Transformed (Func<Point, Point> f)
     {
-        var newCubic = this;
-        newCubic.Anchor0 = f(newCubic.Anchor0);
-        newCubic.Control0 = f(newCubic.Control0);
-        newCubic.Control1 = f(newCubic.Control1);
-        newCubic.Anchor1 = f(newCubic.Anchor1);
+        var newCubic = new CubicBezier(
+            f(Anchor0),
+            f(Control0),
+            f(Control1),
+            f(Anchor1)
+        );
+
         return newCubic;
     }
 
@@ -264,9 +274,15 @@ public struct CubicBezier (Point anchor0, Point control0, Point control1, Point 
                Anchor1.Equals(other.Anchor1);
     }
 
-    public override bool Equals (object? obj) => obj is CubicBezier other && Equals(other);
+    public override bool Equals (object? obj)
+    {
+        return obj is CubicBezier other && Equals(other);
+    }
 
-    public override int GetHashCode ( ) => HashCode.Combine(Anchor0, Control0, Control1, Anchor1);
+    public override int GetHashCode ( )
+    {
+        return HashCode.Combine(Anchor0, Control0, Control1, Anchor1);
+    }
 
     public static CubicBezier StraightLine (Point p0, Point p1)
     {
@@ -286,16 +302,16 @@ public struct CubicBezier (Point anchor0, Point control0, Point control1, Point 
         var rotatedV0 = new Point(-v0.Y, v0.X);
         var rotatedV1 = new Point(-v1.Y, v1.X);
 
-        bool clockwise = (rotatedV0.X * v1.X + rotatedV0.Y * v1.Y) >= 0;
+        var clockwise = rotatedV0.X * v1.X + rotatedV0.Y * v1.Y >= 0;
 
-        double len0 = Math.Sqrt(v0.X * v0.X + v0.Y * v0.Y);
-        double len1 = Math.Sqrt(v1.X * v1.X + v1.Y * v1.Y);
-        double cosa = (v0.X * v1.X + v0.Y * v1.Y) / (len0 * len1);
+        var len0 = Math.Sqrt(v0.X * v0.X + v0.Y * v0.Y);
+        var len1 = Math.Sqrt(v1.X * v1.X + v1.Y * v1.Y);
+        var cosa = (v0.X * v1.X + v0.Y * v1.Y) / (len0 * len1);
 
         if ( cosa > 0.999 )
             return StraightLine(p0, p1);
 
-        double k = len0 * 4.0 / 3.0 * (Math.Sqrt(2 * (1 - cosa)) - Math.Sqrt(1 - cosa * cosa)) / (1 - cosa);
+        var k = len0 * 4.0 / 3.0 * (Math.Sqrt(2 * (1 - cosa)) - Math.Sqrt(1 - cosa * cosa)) / (1 - cosa);
         if ( !clockwise )
             k = -k;
 
@@ -307,19 +323,24 @@ public struct CubicBezier (Point anchor0, Point control0, Point control1, Point 
         );
     }
 
-    internal static CubicBezier Empty (double x, double y) =>
-        new(new Point(x, y), new Point(x, y), new Point(x, y), new Point(x, y));
+    internal static CubicBezier Empty (double x, double y)
+    {
+        return new CubicBezier(new Point(x, y), new Point(x, y), new Point(x, y), new Point(x, y));
+    }
 
     public static CubicBezier Interpolate (CubicBezier start, CubicBezier end, double progress)
     {
-        CubicBezier newCubic;
-        newCubic.Anchor0 = InterpolatePoint(start.Anchor0, end.Anchor0, progress);
-        newCubic.Control0 = InterpolatePoint(start.Control0, end.Control0, progress);
-        newCubic.Control1 = InterpolatePoint(start.Control1, end.Control1, progress);
-        newCubic.Anchor1 = InterpolatePoint(start.Anchor1, end.Anchor1, progress);
+        CubicBezier newCubic = new(
+            InterpolatePoint(start.Anchor0, end.Anchor0, progress),
+            InterpolatePoint(start.Control0, end.Control0, progress),
+            InterpolatePoint(start.Control1, end.Control1, progress),
+            InterpolatePoint(start.Anchor1, end.Anchor1, progress)
+        );
         return newCubic;
     }
 
-    private static Point InterpolatePoint (Point p1, Point p2, double t) =>
-        new(p1.X + (p2.X - p1.X) * t, p1.Y + (p2.Y - p1.Y) * t);
+    private static Point InterpolatePoint (Point p1, Point p2, double t)
+    {
+        return new Point(p1.X + (p2.X - p1.X) * t, p1.Y + (p2.Y - p1.Y) * t);
+    }
 }

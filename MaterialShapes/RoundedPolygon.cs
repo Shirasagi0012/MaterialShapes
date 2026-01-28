@@ -76,8 +76,10 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
                     if ( lastCubic is null )
                         continue;
 
-                    var updated = lastCubic.Value; // struct copy
-                    updated.Anchor1 = cubic.Anchor1;
+                    var updated = new CubicBezier(lastCubic.Value)
+                    {
+                        Anchor1 = cubic.Anchor1
+                    };
                     lastCubic = updated;
                 }
             }
