@@ -23,7 +23,7 @@ public static class FeatureMapping
         return dm;
     }
 
-    private static List<ValueTuple<double, double>> DoMapping (MeasuredFeatures features1, MeasuredFeatures features2)
+    internal static List<ValueTuple<double, double>> DoMapping (MeasuredFeatures features1, MeasuredFeatures features2)
     {
         var distanceVertexList = (from f1 in features1 from f2 in features2 let d = FeatureDistSquared(f1.Feature, f2.Feature) where d != float.MaxValue select new DistanceVertex(d, f1, f2)).ToList();
 
