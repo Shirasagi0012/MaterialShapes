@@ -19,11 +19,11 @@ public class MorphTest
 
         Assert.True(cubics11.Count > 0);
 
-        foreach ( var morphCubic in cubics11 )
+        foreach (var morphCubic in cubics11)
         {
             var matched = false;
-            foreach ( var p1Cubic in p1Cubics )
-                if ( CubicsEqualish(morphCubic, p1Cubic) )
+            foreach (var p1Cubic in p1Cubics)
+                if (CubicsEqualish(morphCubic, p1Cubic))
                 {
                     matched = true;
                     break;

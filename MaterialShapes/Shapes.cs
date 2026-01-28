@@ -67,11 +67,15 @@ public partial class RoundedPolygon
         var pvRounding = perVertexRounding;
         var roundingValue = rounding ?? CornerRounding.Unrounded;
 
+        // If no per-vertex rounding supplied and caller asked for inner rounding,
+        // create per-vertex rounding list based on supplied outer/inner rounding parameters
         if (pvRounding is null && innerRounding is { })
             pvRounding = Enumerable.Range(0, numVerticesPerRadius)
                 .SelectMany(_ => new[] { roundingValue, innerRounding.Value })
                 .ToList();
 
+        // Star polygon is just a polygon with all vertices supplied (where we generate
+        // those vertices to be on the inner/outer radii)
         return new RoundedPolygon(
             StarVerticesFromNumVerts(numVerticesPerRadius, radius, innerRadius, center),
             roundingValue,
@@ -151,6 +155,8 @@ public partial class RoundedPolygon
         var pvRounding = perVertexRounding;
         var roundingValue = rounding ?? CornerRounding.Unrounded;
 
+        // If no per-vertex rounding supplied and caller asked for inner rounding,
+        // create per-vertex rounding list based on supplied outer/inner rounding parameters
         if (pvRounding is null && innerRounding is { })
             pvRounding = Enumerable.Range(0, numVerticesPerRadius)
                 .SelectMany(_ => new[] { roundingValue, innerRounding.Value })
@@ -174,24 +180,42 @@ public partial class RoundedPolygon
         int numVerticesPerRadius,
         double width,
         double height,
-        double innerRadiusRatio,
+        double innerRadius,
         double vertexSpacing,
         double startLocation,
         Point center
     )
     {
-        // Width/height define the overall pill's bounding box; each endcap is a semicircle whose
-        // radius is half of the smaller dimension.
-        var endcapRadius = Math.Min(width, height) / 2d;
+        // The general approach here is to get the perimeter of the underlying pill outline,
+        // then the t value for each vertex as we walk that perimeter. This tells us where
+        // on the outline to place that vertex, then we figure out where to place the vertex
+        // depending on which "section" it is in. The possible sections are the vertical edges
+        // on the sides, the circular sections on all four corners, or the horizontal edges
+        // on the top and bottom. Note that either the vertical or horizontal edges will be
+        // of length zero (whichever dimension is smaller gets only circular curvature for the
+        // pill shape).
+
+        var endcapRadius = Math.Min(width, height);
 
         var vSegLen = Math.Max(0d, height - width);
         var hSegLen = Math.Max(0d, width - height);
         var vSegHalf = vSegLen / 2d;
         var hSegHalf = hSegLen / 2d;
 
-        var circlePerimeter = 2d * Math.PI * endcapRadius * Interpolate(innerRadiusRatio, 1d, vertexSpacing);
+        // vertexSpacing is used to position the vertices on the end caps. The caller has the choice
+        // of spacing the inner (0) or outer (1) vertices like those along the edges, causing the
+        // other vertices to be either further apart (0) or closer (1). The default is .5, which
+        // averages things. The magnitude of the inner and rounding parameters may cause the caller
+        // to want a different value.
+        var circlePerimeter = 2d * Math.PI * endcapRadius * Interpolate(innerRadius, 1d, vertexSpacing);
+
+        // perimeter is circle perimeter plus horizontal and vertical sections of inner rectangle,
+        // whether either (or even both) might be of length zero.
         var perimeter = 2d * hSegLen + 2d * vSegLen + circlePerimeter;
 
+        // The sections array holds the t start values of that part of the outline. We use these to
+        // determine which section a given vertex lies in, based on its t value, as well as where
+        // in that section it lies.
         var sections = new double[11];
         sections[0] = 0d;
         sections[1] = vSegLen / 2d;
@@ -205,15 +229,28 @@ public partial class RoundedPolygon
         sections[9] = sections[8] + vSegLen / 2d;
         sections[10] = perimeter;
 
+        // "t" is the length along the entire pill outline for a given vertex. With vertices spaced
+        // evenly along this contour, we can determine for any vertex where it should lie.
         var tPerVertex = perimeter / (2d * numVerticesPerRadius);
 
+        // separate iteration for inner vs outer, unlike the other shapes, because
+        // the vertices can lie in different quadrants so each needs their own calculation
         var inner = false;
+
+        // Increment section index as we walk around the pill contour with our increasing t values
         var currSecIndex = 0;
+
+        // secStart/End are used to determine how far along a given vertex is in the section
+        // in which it lands
         var secStart = 0d;
         var secEnd = sections[1];
 
+        // t value is used to place each vertex. 0 is on the positive x axis,
+        // moving into section 0 to begin with. startLocation, a value from 0 to 1, varies the location
+        // anywhere on the perimeter of the shape
         var t = startLocation * perimeter;
 
+        // The list of vertices to be returned
         var result = new Point[numVerticesPerRadius * 2];
         var vertexIndex = 0;
 
@@ -222,10 +259,13 @@ public partial class RoundedPolygon
         var rectTL = new Point(-hSegHalf, -vSegHalf);
         var rectTR = new Point(hSegHalf, -vSegHalf);
 
+        // Each iteration through this loop uses the next t value as we walk around the shape
         for (var i = 0; i < numVerticesPerRadius * 2; i++)
         {
+            // t could start (and end) after 0; extra boundedT logic makes sure it does the right
+            // thing when crossing the boundar past 0 again
+
             var boundedT = t % perimeter;
-            //TODO: Check Correctness
             if (boundedT < secStart)
             {
                 currSecIndex = 0;
@@ -243,7 +283,7 @@ public partial class RoundedPolygon
             var tInSection = boundedT - secStart;
             var tProportion = secEnd - secStart <= Utils.DistanceEpsilon ? 0d : tInSection / (secEnd - secStart);
 
-            var currRadius = inner ? endcapRadius * innerRadiusRatio : endcapRadius;
+            var currRadius = inner ? endcapRadius * innerRadius : endcapRadius;
 
             var vertex = currSecIndex switch
             {
@@ -255,6 +295,7 @@ public partial class RoundedPolygon
                 5 => Utils.RadialToCartesian(currRadius, Math.PI + tProportion * (Math.PI / 2d)) + rectTL,
                 6 => new Point(-hSegHalf + tProportion * hSegLen, -currRadius),
                 7 => Utils.RadialToCartesian(currRadius, Math.PI * 1.5d + tProportion * (Math.PI / 2d)) + rectTR,
+                // 8
                 _ => new Point(currRadius, -vSegHalf + tProportion * vSegHalf)
             };
 

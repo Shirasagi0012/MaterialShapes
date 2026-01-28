@@ -27,11 +27,11 @@ public static class FeatureMapping
     internal static List<ValueTuple<double, double>> DoMapping(MeasuredFeatures features1, MeasuredFeatures features2)
     {
         var distanceVertexList =
-            (from f1 in features1
-             from f2 in features2
-             let d = FeatureDistSquared(f1.Feature, f2.Feature)
-             where d != Single.MaxValue
-             select new DistanceVertex(d, f1, f2)).ToList();
+            features1
+                .SelectMany(f1 => features2, (f1, f2) => new { f1, f2 })
+                .Select(t => new { t, d = FeatureDistSquared(t.f1.Feature, t.f2.Feature) })
+                .Where(t => t.d != Double.MaxValue)
+                .Select(t => new DistanceVertex(t.d, t.t.f1, t.t.f2)).ToList();
 
         distanceVertexList.Sort((a, b) => a.Distance.CompareTo(b.Distance));
 
@@ -139,11 +139,6 @@ internal class DoubleMapper
 
     private static double LinearMap(IReadOnlyList<double> xValues, IReadOnlyList<double> yValues, double x)
     {
-        // TODO: Cleanup
-        // x = Utils.PositiveModulo(x, 1d);
-        // // Treat 1 as 0 (progress wraps).
-        // if (x >= 1d) x = 0d;
-
         if (x is < 0 or > 1)
             throw new ArgumentOutOfRangeException(nameof(x));
 
