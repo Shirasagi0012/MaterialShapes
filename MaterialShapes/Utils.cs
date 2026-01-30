@@ -5,7 +5,7 @@ namespace MaterialShapes;
 internal static class Utils
 {
     public const double DistanceEpsilon = 1e-4;
-    public const double AngleEpsilon = 1e-4;
+    public const double AngleEpsilon = 1e-6;
 
     internal static bool Convex(Point previous, Point current, Point next)
     {
