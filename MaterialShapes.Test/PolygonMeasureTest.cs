@@ -40,19 +40,19 @@ public class PolygonMeasureTest
     [Fact]
     public void MeasureSlightlyRoundedHexagon()
     {
-        IrregularPolygonMeasure(RoundedPolygon.FromVertexCount(6, rounding: new CornerRounding(0.15)));
+        IrregularPolygonMeasure(new RoundedPolygon(6, rounding: new CornerRounding(0.15)));
     }
 
     [Fact]
     public void MeasureMediumRoundedHexagon()
     {
-        IrregularPolygonMeasure(RoundedPolygon.FromVertexCount(6, rounding: new CornerRounding(0.5)));
+        IrregularPolygonMeasure(new RoundedPolygon(6, rounding: new CornerRounding(0.5)));
     }
 
     [Fact]
     public void MeasureMaximumRoundedHexagon()
     {
-        IrregularPolygonMeasure(RoundedPolygon.FromVertexCount(6, rounding: new CornerRounding(1)));
+        IrregularPolygonMeasure(new RoundedPolygon(6, rounding: new CornerRounding(1)));
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class PolygonMeasureTest
     public void IrregularTriangleAngleMeasure()
     {
         IrregularPolygonMeasure(
-            RoundedPolygon.FromVertices(
+            new RoundedPolygon(
                 [
                     new Point(0, -1),
                     new Point(1, 1),
@@ -91,7 +91,7 @@ public class PolygonMeasureTest
     public void QuarterAngleMeasure()
     {
         IrregularPolygonMeasure(
-            RoundedPolygon.FromVertices(
+            new RoundedPolygon(
                 [
                     new Point(-1, -1),
                     new Point(1, -1),
@@ -125,7 +125,7 @@ public class PolygonMeasureTest
         var horizontal = 2 * unit;
         var total = 4 * diagonal + 2 * horizontal;
 
-        var polygon = RoundedPolygon.FromVertices(coordinates);
+        var polygon = new RoundedPolygon(coordinates);
         CustomPolygonMeasure(
             polygon,
             [
@@ -141,7 +141,7 @@ public class PolygonMeasureTest
     [Fact]
     public void HandlesEmptyFeatureLast()
     {
-        var triangle = RoundedPolygon.FromFeatures(
+        var triangle = new RoundedPolygon(
             new List<Feature>
             {
                 Feature.BuildConvexCorner(
@@ -160,7 +160,7 @@ public class PolygonMeasureTest
     private void RegularPolygonMeasure(int sides, CornerRounding? rounding = null)
     {
         IrregularPolygonMeasure(
-            RoundedPolygon.FromVertexCount(sides, rounding: rounding ?? CornerRounding.Unrounded),
+            new RoundedPolygon(sides, rounding: rounding ?? CornerRounding.Unrounded),
             measuredPolygon =>
             {
                 Assert.Equal(sides, measuredPolygon.Count);

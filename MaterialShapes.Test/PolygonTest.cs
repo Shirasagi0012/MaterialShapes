@@ -5,12 +5,12 @@ namespace MaterialShapes.Test;
 
 public class PolygonTest
 {
-    private readonly RoundedPolygon _square = RoundedPolygon.FromVertexCount(4);
+    private readonly RoundedPolygon _square = new RoundedPolygon(4);
 
     private readonly RoundedPolygon _roundedSquare =
-        RoundedPolygon.FromVertexCount(4, rounding: new CornerRounding(0.2));
+        new RoundedPolygon(4, rounding: new CornerRounding(0.2));
 
-    private readonly RoundedPolygon _pentagon = RoundedPolygon.FromVertexCount(5);
+    private readonly RoundedPolygon _pentagon = new RoundedPolygon(5);
 
     [Fact]
     public void ConstructionTest()
@@ -19,12 +19,12 @@ public class PolygonTest
         var max = new Point(1, 1);
         AssertInBounds(_square.Cubics, min, max);
 
-        var doubleSquare = RoundedPolygon.FromVertexCount(4, 2);
+        var doubleSquare = new RoundedPolygon(4, 2);
         min = ScalePoint(min, 2);
         max = ScalePoint(max, 2);
         AssertInBounds(doubleSquare.Cubics, min, max);
 
-        var offsetSquare = RoundedPolygon.FromVertexCount(4, center: new Point(1, 2));
+        var offsetSquare = new RoundedPolygon(4, center: new Point(1, 2));
         min = new Point(0, 1);
         max = new Point(2, 3);
         AssertInBounds(offsetSquare.Cubics, min, max);
@@ -38,13 +38,13 @@ public class PolygonTest
         var p1 = new Point(0, 1);
         var p2 = new Point(-1, 0);
         var p3 = new Point(0, -1);
-        var manualSquare = RoundedPolygon.FromVertices([p0, p1, p2, p3]);
+        var manualSquare = new RoundedPolygon([p0, p1, p2, p3]);
         min = new Point(-1, -1);
         max = new Point(1, 1);
         AssertInBounds(manualSquare.Cubics, min, max);
 
         var offset = new Point(1, 2);
-        var manualSquareOffset = RoundedPolygon.FromVertices(
+        var manualSquareOffset = new RoundedPolygon(
             [
                 Add(p0, offset),
                 Add(p1, offset),
@@ -130,7 +130,7 @@ public class PolygonTest
     [Fact]
     public void EmptyPolygonTest()
     {
-        var poly = RoundedPolygon.FromVertexCount(6, 0, rounding: new CornerRounding(0.1));
+        var poly = new RoundedPolygon(6, 0, rounding: new CornerRounding(0.1));
         Assert.Single(poly.Cubics);
 
         var stillEmpty = poly.Transformed(ScaleTransform(10, 20));
@@ -141,7 +141,7 @@ public class PolygonTest
     [Fact]
     public void EmptySideTest()
     {
-        var poly1 = RoundedPolygon.FromVertices(
+        var poly1 = new RoundedPolygon(
         [
             new Point(0, 0),
             new Point(1, 0),
@@ -149,7 +149,7 @@ public class PolygonTest
             new Point(0, 1)
         ]);
 
-        var poly2 = RoundedPolygon.FromVertices(
+        var poly2 = new RoundedPolygon(
         [
             new Point(0, 0),
             new Point(1, 0),

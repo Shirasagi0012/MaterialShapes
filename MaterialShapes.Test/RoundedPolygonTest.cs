@@ -18,24 +18,24 @@ public class RoundedPolygonTest
     [Fact]
     public void NumVertsConstructorTest()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => RoundedPolygon.FromVertexCount(2));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new RoundedPolygon(2));
 
-        var square = RoundedPolygon.FromVertexCount(4);
+        var square = new RoundedPolygon(4);
         var min = new Point(-1, -1);
         var max = new Point(1, 1);
         AssertInBounds(square.Cubics, min, max);
 
-        var doubleSquare = RoundedPolygon.FromVertexCount(4, 2);
+        var doubleSquare = new RoundedPolygon(4, 2);
         min = Scale(min, 2);
         max = Scale(max, 2);
         AssertInBounds(doubleSquare.Cubics, min, max);
 
-        var squareRounded = RoundedPolygon.FromVertexCount(4, rounding: _rounding);
+        var squareRounded = new RoundedPolygon(4, rounding: _rounding);
         min = new Point(-1, -1);
         max = new Point(1, 1);
         AssertInBounds(squareRounded.Cubics, min, max);
 
-        var squarePVRounded = RoundedPolygon.FromVertexCount(4, perVertexRounding: _perVtxRounded);
+        var squarePVRounded = new RoundedPolygon(4, perVertexRounding: _perVtxRounded);
         min = new Point(-1, -1);
         max = new Point(1, 1);
         AssertInBounds(squarePVRounded.Cubics, min, max);
@@ -49,27 +49,27 @@ public class RoundedPolygonTest
         var p2 = new Point(-1, 0);
         var p3 = new Point(0, -1);
 
-        Assert.Throws<ArgumentException>(() => RoundedPolygon.FromVertices([p0, p1]));
+        Assert.Throws<ArgumentException>(() => new RoundedPolygon([p0, p1]));
 
-        var manualSquare = RoundedPolygon.FromVertices([p0, p1, p2, p3]);
+        var manualSquare = new RoundedPolygon([p0, p1, p2, p3]);
         var min = new Point(-1, -1);
         var max = new Point(1, 1);
         AssertInBounds(manualSquare.Cubics, min, max);
 
         var offset = new Point(1, 2);
-        var manualSquareOffset = RoundedPolygon.FromVertices(
+        var manualSquareOffset = new RoundedPolygon(
             [Add(p0, offset), Add(p1, offset), Add(p2, offset), Add(p3, offset)],
             center: offset);
         min = new Point(0, 1);
         max = new Point(2, 3);
         AssertInBounds(manualSquareOffset.Cubics, min, max);
 
-        var manualSquareRounded = RoundedPolygon.FromVertices([p0, p1, p2, p3], _rounding);
+        var manualSquareRounded = new RoundedPolygon([p0, p1, p2, p3], _rounding);
         min = new Point(-1, -1);
         max = new Point(1, 1);
         AssertInBounds(manualSquareRounded.Cubics, min, max);
 
-        var manualSquarePVRounded = RoundedPolygon.FromVertices([p0, p1, p2, p3], perVertexRounding: _perVtxRounded);
+        var manualSquarePVRounded = new RoundedPolygon([p0, p1, p2, p3], perVertexRounding: _perVtxRounded);
         min = new Point(-1, -1);
         max = new Point(1, 1);
         AssertInBounds(manualSquarePVRounded.Cubics, min, max);
@@ -78,9 +78,9 @@ public class RoundedPolygonTest
     [Fact]
     public void FeaturesConstructorThrowsForTooFewFeatures()
     {
-        Assert.Throws<ArgumentException>(() => RoundedPolygon.FromFeatures(new List<Feature>()));
+        Assert.Throws<ArgumentException>(() => new RoundedPolygon(new List<Feature>()));
         var corner = Feature.BuildConvexCorner([CubicBezier.Empty(0, 0)]);
-        Assert.Throws<ArgumentException>(() => RoundedPolygon.FromFeatures([corner]));
+        Assert.Throws<ArgumentException>(() => new RoundedPolygon([corner]));
     }
 
     [Fact]
@@ -89,14 +89,14 @@ public class RoundedPolygonTest
         var cubic1 = CubicBezier.StraightLine(new Point(0, 0), new Point(1, 0));
         var cubic2 = CubicBezier.StraightLine(new Point(10, 10), new Point(20, 20));
         Assert.Throws<ArgumentException>(() =>
-            RoundedPolygon.FromFeatures([Feature.BuildEdge(cubic1), Feature.BuildEdge(cubic2)]));
+            new RoundedPolygon([Feature.BuildEdge(cubic1), Feature.BuildEdge(cubic2)]));
     }
 
     [Fact]
     public void FeaturesConstructorReconstructsSquare()
     {
         var basePolygon = RoundedPolygon.CreateRectangle();
-        var actual = RoundedPolygon.FromFeatures(basePolygon.Features);
+        var actual = new RoundedPolygon(basePolygon.Features);
         AssertPolygonsEqualish(basePolygon, actual);
     }
 
@@ -104,7 +104,7 @@ public class RoundedPolygonTest
     public void FeaturesConstructorReconstructsRoundedSquare()
     {
         var basePolygon = RoundedPolygon.CreateRectangle(rounding: new CornerRounding(0.5, 0.2));
-        var actual = RoundedPolygon.FromFeatures(basePolygon.Features);
+        var actual = new RoundedPolygon(basePolygon.Features);
         AssertPolygonsEqualish(basePolygon, actual);
     }
 
@@ -114,7 +114,7 @@ public class RoundedPolygonTest
         for (var i = 3; i <= 20; i++)
         {
             var basePolygon = RoundedPolygon.CreateCircle(i);
-            var actual = RoundedPolygon.FromFeatures(basePolygon.Features);
+            var actual = new RoundedPolygon(basePolygon.Features);
             AssertPolygonsEqualish(basePolygon, actual);
         }
     }
@@ -125,7 +125,7 @@ public class RoundedPolygonTest
         for (var i = 3; i <= 20; i++)
         {
             var basePolygon = RoundedPolygon.CreateStar(i);
-            var actual = RoundedPolygon.FromFeatures(basePolygon.Features);
+            var actual = new RoundedPolygon(basePolygon.Features);
             AssertPolygonsEqualish(basePolygon, actual);
         }
     }
@@ -138,7 +138,7 @@ public class RoundedPolygonTest
             var basePolygon = RoundedPolygon.CreateStar(
                 i,
                 rounding: new CornerRounding(0.5, 0.2));
-            var actual = RoundedPolygon.FromFeatures(basePolygon.Features);
+            var actual = new RoundedPolygon(basePolygon.Features);
             AssertPolygonsEqualish(basePolygon, actual);
         }
     }
@@ -147,7 +147,7 @@ public class RoundedPolygonTest
     public void FeaturesConstructorReconstructsPill()
     {
         var basePolygon = RoundedPolygon.CreatePill();
-        var actual = RoundedPolygon.FromFeatures(basePolygon.Features);
+        var actual = new RoundedPolygon(basePolygon.Features);
         AssertPolygonsEqualish(basePolygon, actual);
     }
 
@@ -155,14 +155,14 @@ public class RoundedPolygonTest
     public void FeaturesConstructorReconstructsPillStar()
     {
         var basePolygon = RoundedPolygon.CreatePillStar(rounding: new CornerRounding(0.5, 0.2));
-        var actual = RoundedPolygon.FromFeatures(basePolygon.Features);
+        var actual = new RoundedPolygon(basePolygon.Features);
         AssertPolygonsEqualish(basePolygon, actual);
     }
 
     [Fact]
     public void ComputeCenterTest()
     {
-        var polygon = RoundedPolygon.FromVertices(
+        var polygon = new RoundedPolygon(
             [new Point(0, 0), new Point(1, 0), new Point(0, 1), new Point(1, 1)]);
 
         AssertEqualish(0.5, polygon.CenterX);
@@ -181,7 +181,7 @@ public class RoundedPolygonTest
             new(1, 1),
             CornerRounding.Unrounded
         };
-        var polygon = RoundedPolygon.FromVertices([p0, p1, p2], perVertexRounding: pvRounding);
+        var polygon = new RoundedPolygon([p0, p1, p2], perVertexRounding: pvRounding);
 
         var lowerEdgeFeature = polygon.Features.First(f => f.IsEdge);
         Assert.Single(lowerEdgeFeature.Cubics);
@@ -305,7 +305,7 @@ public class RoundedPolygonTest
             rounding3 ?? new CornerRounding(0.5)
         };
 
-        var polygon = RoundedPolygon.FromVertices([p0, p1, p2, p3], perVertexRounding: pvRounding);
+        var polygon = new RoundedPolygon([p0, p1, p2, p3], perVertexRounding: pvRounding);
         var edges = polygon.Features.Where(f => f.IsEdge).ToList();
         var e01 = edges[0];
         var e30 = edges[3];

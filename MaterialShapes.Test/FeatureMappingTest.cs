@@ -6,10 +6,10 @@ namespace MaterialShapes.Test;
 public class FeatureMappingTest
 {
     private readonly RoundedPolygon _triangleWithRoundings =
-        RoundedPolygon.FromVertexCount(3, rounding: new CornerRounding(0.2));
+        new RoundedPolygon(3, rounding: new CornerRounding(0.2));
 
-    private readonly RoundedPolygon _triangle = RoundedPolygon.FromVertexCount(3);
-    private readonly RoundedPolygon _square = RoundedPolygon.FromVertexCount(4);
+    private readonly RoundedPolygon _triangle = new RoundedPolygon(3);
+    private readonly RoundedPolygon _square = new RoundedPolygon(4);
 
     [Fact]
     public void FeatureMappingTriangles()
@@ -48,7 +48,7 @@ public class FeatureMappingTest
     [Fact]
     public void FeatureMappingDoesNotCrash()
     {
-        var checkmark = RoundedPolygon.FromVertices(
+        var checkmark = new RoundedPolygon(
             [
                 new Point(400, -304),
                 new Point(240, -464),

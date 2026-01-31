@@ -7,8 +7,8 @@ public class MorphTest
 {
     private const double Epsilon = 1e-4;
 
-    private readonly RoundedPolygon _poly1 = RoundedPolygon.FromVertexCount(3, center: new Point(0.5, 0.5));
-    private readonly RoundedPolygon _poly2 = RoundedPolygon.FromVertexCount(4, center: new Point(0.5, 0.5));
+    private readonly RoundedPolygon _poly1 = new RoundedPolygon(3, center: new Point(0.5, 0.5));
+    private readonly RoundedPolygon _poly2 = new RoundedPolygon(4, center: new Point(0.5, 0.5));
 
     [Fact]
     public void CubicsTest()
