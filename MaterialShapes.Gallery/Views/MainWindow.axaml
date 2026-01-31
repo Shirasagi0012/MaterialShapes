@@ -2,8 +2,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:MaterialShapes.Gallery.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:msm="using:MaterialShapes.Markups"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="550"
+        xmlns:controls="clr-namespace:MaterialShapes.Controls;assembly=MaterialShapes"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="900"
         x:Class="MaterialShapes.Gallery.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
@@ -11,10 +13,19 @@
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel/>
     </Design.DataContext>
+    
+    <StackPanel>
+        <Border Width="400" 
+                Height="400" 
+                Background="#874934"
+                Clip="{msm:MaterialShapeGeometry {Binding Shape}}" />
+        <Button Content="Change" 
+                Command="{Binding ChangeShapeCommand}" />
+    </StackPanel>
 
-    <Border x:Name="TestBorder" Width="400" Height="400" Background="#874934"></Border>
+
 
 </Window>

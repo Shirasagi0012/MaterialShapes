@@ -96,8 +96,10 @@ public sealed class Morph
 
     public void ForEachCubic(double progress, Action<CubicBezier> callback)
     {
-        for (var i = 0; i < _morphMatch.Count; i++)
-            callback(CubicBezier.Interpolate(_morphMatch[i].Start, _morphMatch[i].End, progress));
+        foreach (var cubic in EnumerateCubics(progress))
+        {
+            callback(cubic);
+        }
     }
 
     internal static List<(CubicBezier Start, CubicBezier End)> Match(RoundedPolygon p1, RoundedPolygon p2)

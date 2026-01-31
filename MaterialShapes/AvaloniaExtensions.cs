@@ -21,5 +21,16 @@ public static class AvaloniaExtensions
                 ctx.CubicBezierTo(cubic.Control0, cubic.Control1, cubic.Anchor1);
             ctx.EndFigure(true);
         }
+
+        public void DrawMorph(Morph morph, double progress)
+        {
+            if (morph.MorphMatch.Count == 0)
+                return;
+            var first = morph.EnumerateCubics(progress).First();
+            ctx.BeginFigure(first.Anchor0, true);
+            foreach (var cubic in morph.EnumerateCubics(progress))
+                ctx.CubicBezierTo(cubic.Control0, cubic.Control1, cubic.Anchor1);
+            ctx.EndFigure(true);
+        }
     }
 }
