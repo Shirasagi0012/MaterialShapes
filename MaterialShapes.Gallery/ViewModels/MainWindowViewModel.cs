@@ -10,12 +10,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel()
     {
-        Shape = RoundedPolygon.CreateStar(4, 150, 80, new(50), new(80), center: new(200, 200));
+        Shape = RoundedPolygon.CreateStar(4, 150, 80, new(50), new(80)).Normalized();
     }
 
     [RelayCommand]
     public void ChangeShape()
     {
-        Shape = RoundedPolygon.CreateStar(5, 150, 80, new(50), new(80), center: new(200, 200));
+        Shape = RoundedPolygon.CreateStar(5, 150, 80, new(50), new(80)).Normalized();
     }
 }

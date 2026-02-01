@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Data;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
 
 namespace MaterialShapes.Markups;
 
@@ -16,12 +17,12 @@ public class MaterialShapeGeometryExtension : AvaloniaObject
         Shape = shape;
     }
 
-    MaterialShapeGeometryExtension()
+    private MaterialShapeGeometryExtension()
     {
         ShapeProperty.Changed.AddClassHandler<MaterialShapeGeometryExtension>((x, args) =>
         {
-            if(args.NewValue is RoundedPolygon p)
-                x.Geometry = new MaterialShapeGeometry(p);
+            if (args.NewValue is RoundedPolygon p)
+                x.Geometry = new(p);
         });
     }
     
@@ -43,8 +44,48 @@ public class MaterialShapeGeometryExtension : AvaloniaObject
         set => SetValue(GeometryProperty, value);
     }
     
-    public IBinding ProvideValue()
+    public IBinding ProvideValue(IServiceProvider provider)
     {
         return this[!GeometryProperty];
+    }
+
+    private class MaterialShapeGeometry : StreamGeometry
+    {
+        public static readonly StyledProperty<RoundedPolygon?> ShapeProperty =
+            AvaloniaProperty.Register<MaterialShapeGeometry, RoundedPolygon?>(nameof(Shape));
+
+        static MaterialShapeGeometry()
+        {
+            AffectsGeometry(ShapeProperty);
+            ShapeProperty.Changed.AddClassHandler<MaterialShapeGeometry>((x, _) => x.UpdateGeometry());
+        }
+
+        public RoundedPolygon? Shape
+        {
+            get => GetValue(ShapeProperty);
+            set => SetValue(ShapeProperty, value);
+        }
+
+        internal MaterialShapeGeometry(RoundedPolygon? polygon)
+        {
+            Shape = polygon;
+        }
+
+        private void UpdateGeometry()
+        {
+            var shape = Shape;
+            using var context = Open();
+            if (shape != null)
+                context.DrawRoundedPolygon(shape);
+        }
+
+        public override Geometry Clone()
+        {
+            var clone = new MaterialShapeGeometry(Shape)
+            {
+                Transform = Transform
+            };
+            return clone;
+        }
     }
 }

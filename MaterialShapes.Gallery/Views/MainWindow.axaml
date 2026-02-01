@@ -17,14 +17,24 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
     
-    <StackPanel>
-        <Border Width="400" 
-                Height="400" 
+    <Grid>
+        <controls:MaterialShapeView
                 Background="#874934"
-                Clip="{msm:MaterialShapeGeometry {Binding Shape}}" />
+                Shape="{Binding Shape}">
+            <TextBlock Text="Material Shape View"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Foreground="Beige"
+                       FontSize="240"/>
+            <controls:MaterialShapeView.Effect>
+                <DropShadowEffect Color="Green"
+                                  BlurRadius="30"
+                                  Opacity="1"/>
+            </controls:MaterialShapeView.Effect>
+        </controls:MaterialShapeView>
         <Button Content="Change" 
                 Command="{Binding ChangeShapeCommand}" />
-    </StackPanel>
+    </Grid>
 
 
 
