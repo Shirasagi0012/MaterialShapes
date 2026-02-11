@@ -42,90 +42,26 @@ public static class AvaloniaExtensions
         /// Note that the RoundedPolygon is expected to be normalized, by calling Normalized() method. 
         /// RoundedPolygon created with MaterialShape class are already normalized.
         /// </summary>
-        public StreamGeometry ToGeometry(Size size, double rotationDegree = 0, bool stretch = false)
+        public StreamGeometry ToGeometry()
         {
             var geometry = new StreamGeometry();
-            using (var ctx = geometry.Open())
-            {
-                ctx.DrawRoundedPolygon(polygon);
-            }
-
-            if (((size.Width <= 0 || size.Height <= 0) && rotationDegree == 0) || polygon.Cubics.Count == 0)
-                return geometry;
-
-            var scale = Math.Min(size.Width, size.Height);
-            //var translate = Math.Abs(size.Width - size.Height) / 2;
-
-            geometry.Transform = CreateTransformMatrix(
-                stretch ? size.Width : scale,
-                stretch ? size.Height : scale,
-                //(size.Width > size.Height) ? translate : 0,
-                //(size.Width < size.Height) ? translate : 0,
-                0, 0,
-                rotationDegree
-            );
+            using var ctx = geometry.Open();
+            ctx.DrawRoundedPolygon(polygon);
             return geometry;
         }
     }
 
     extension(Morph morph)
     {
-        public StreamGeometry ToGeometry(Size size, double progress, double rotationDegree = 0, bool stretch = false)
+        public StreamGeometry ToGeometry(
+            double progress
+        )
         {
             var geometry = new StreamGeometry();
-            using (var ctx = geometry.Open())
-            {
-                ctx.DrawMorph(morph, progress);
-            }
-
-            if (((size.Width <= 0 || size.Height <= 0) && rotationDegree == 0) || morph.MorphMatch.Count == 0)
-                return geometry;
-
-            var scale = Math.Min(size.Width, size.Height);
-
-            geometry.Transform = CreateTransformMatrix(
-                stretch ? size.Width : scale,
-                stretch ? size.Height : scale,
-                0,
-                0,
-                rotationDegree
-            );
+            using var ctx = geometry.Open();
+            ctx.DrawMorph(morph, progress);
+            
             return geometry;
         }
-    }
-
-    private static MatrixTransform CreateTransformMatrix(
-        double scaleX,
-        double scaleY,
-        double translateX,
-        double translateY,
-        double rotationDegree
-    )
-    {
-        var matrix = new Matrix(
-            scaleX,
-            0,
-            0,
-            scaleY,
-            translateX,
-            translateY);
-        if (rotationDegree != 0)
-        {
-            var radians = rotationDegree * Math.PI / 180.0;
-            var cos = Math.Cos(radians);
-            var sin = Math.Sin(radians);
-
-            var offsetX = translateX * (1 - cos) + translateY * sin;
-            var offsetY = translateY * (1 - cos) - translateX * sin;
-
-            var rotationMatrix = new Matrix(
-                cos, sin,
-                -sin, cos,
-                offsetX, offsetY);
-
-            matrix *= rotationMatrix;
-        }
-
-        return new MatrixTransform(matrix);
     }
 }

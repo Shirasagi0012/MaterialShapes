@@ -13,13 +13,26 @@ public class MaterialShapeView : Decorator
     public static readonly StyledProperty<IBrush?> BackgroundProperty =
         AvaloniaProperty.Register<MaterialShapeView, IBrush?>(nameof(Background));
 
+    public static readonly StyledProperty<Stretch> StretchProperty =
+        AvaloniaProperty.Register<MaterialShapeView, Stretch>(nameof(Stretch), Stretch.Uniform);
+
+    public static readonly StyledProperty<bool> CenterProperty =
+        AvaloniaProperty.Register<MaterialShapeView, bool>(nameof(Center), true);
+
+    public static readonly StyledProperty<bool> IsShapeNormalizedProperty =
+        AvaloniaProperty.Register<MaterialShapeView, bool>(nameof(IsShapeNormalized), true);
+
     private StreamGeometry? _geometryCache;
     private Size _lastSize;
 
     static MaterialShapeView()
     {
-        AffectsRender<MaterialShapeView>(BackgroundProperty, ShapeProperty);
+        AffectsRender<MaterialShapeView>(BackgroundProperty, ShapeProperty, StretchProperty, CenterProperty,
+            IsShapeNormalizedProperty);
         ShapeProperty.Changed.AddClassHandler<MaterialShapeView>((x, _) => x.UpdateGeometry());
+        StretchProperty.Changed.AddClassHandler<MaterialShapeView>((x, _) => x.UpdateGeometry());
+        CenterProperty.Changed.AddClassHandler<MaterialShapeView>((x, _) => x.UpdateGeometry());
+        IsShapeNormalizedProperty.Changed.AddClassHandler<MaterialShapeView>((x, _) => x.UpdateGeometry());
     }
 
     public RoundedPolygon? Shape
@@ -32,6 +45,28 @@ public class MaterialShapeView : Decorator
     {
         get => GetValue(BackgroundProperty);
         set => SetValue(BackgroundProperty, value);
+    }
+
+    public Stretch Stretch
+    {
+        get => GetValue(StretchProperty);
+        set => SetValue(StretchProperty, value);
+    }
+
+    public bool Center
+    {
+        get => GetValue(CenterProperty);
+        set => SetValue(CenterProperty, value);
+    }
+
+    /// <summary>
+    /// When true (default), <see cref="Shape"/> is assumed to be normalized to a 1×1 box (0..1 coordinates).
+    /// When false, the shape's actual geometry bounds are used for fitting.
+    /// </summary>
+    public bool IsShapeNormalized
+    {
+        get => GetValue(IsShapeNormalizedProperty);
+        set => SetValue(IsShapeNormalizedProperty, value);
     }
 
     protected override Size ArrangeOverride(Size finalSize)
@@ -47,8 +82,6 @@ public class MaterialShapeView : Decorator
 
     public override void Render(DrawingContext context)
     {
-        _geometryCache ??= Shape?.ToGeometry(_lastSize);
-
         if (Background is { } background && _geometryCache is { } geometry)
             context.DrawGeometry(background, null, geometry);
 
@@ -57,8 +90,32 @@ public class MaterialShapeView : Decorator
 
     private void UpdateGeometry()
     {
-        _geometryCache = Shape?.ToGeometry(_lastSize);
-        Clip = _geometryCache;
+        if (Shape is null || _lastSize.Width <= 0 || _lastSize.Height <= 0)
+        {
+            _geometryCache = null;
+            Clip = null;
+            InvalidateVisual();
+            return;
+        }
+
+        var geometry = Shape.ToGeometry();
+
+        var sourceBounds = IsShapeNormalized
+            ? new Rect(0, 0, 1, 1)
+            : geometry.Bounds;
+
+        if (sourceBounds.Width <= 0 || sourceBounds.Height <= 0)
+        {
+            _geometryCache = null;
+            Clip = null;
+            InvalidateVisual();
+            return;
+        }
+
+        geometry.Transform = Utils.CreateFitTransform(sourceBounds, _lastSize, Stretch, Center);
+
+        _geometryCache = geometry;
+        Clip = geometry;
         InvalidateVisual();
     }
 }

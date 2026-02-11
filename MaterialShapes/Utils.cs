@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Media;
 
 namespace MaterialShapes;
 
@@ -88,5 +89,90 @@ internal static class Utils
     public static Point RadicalToCartesian(double radius, double angleRadians, Point center = default)
     {
         return DirectionVector(angleRadians) * radius + center;
+    }
+
+    public static Matrix CreateTransformMatrix(
+        double scaleX,
+        double scaleY,
+        double translateX,
+        double translateY,
+        double rotationDegree
+    )
+    {
+        var matrix = new Matrix(
+            scaleX,
+            0,
+            0,
+            scaleY,
+            translateX,
+            translateY);
+        if (rotationDegree != 0)
+        {
+            var radians = rotationDegree * Math.PI / 180.0;
+            var cos = Math.Cos(radians);
+            var sin = Math.Sin(radians);
+
+            var offsetX = translateX * (1 - cos) + translateY * sin;
+            var offsetY = translateY * (1 - cos) - translateX * sin;
+
+            var rotationMatrix = new Matrix(
+                cos, sin,
+                -sin, cos,
+                offsetX, offsetY);
+
+            matrix *= rotationMatrix;
+        }
+
+        return matrix;
+    }
+
+    public static Transform? CreateFitTransform(Rect sourceBounds, Size availableSize, Stretch stretch, bool center)
+    {
+        var width = availableSize.Width;
+        var height = availableSize.Height;
+
+        if (width <= 0 || height <= 0)
+            return null;
+
+        if (sourceBounds.Width <= 0 || sourceBounds.Height <= 0)
+            return null;
+
+        var sx = width / sourceBounds.Width;
+        var sy = height / sourceBounds.Height;
+
+        var max = Math.Max(sx, sy);
+        var min = Math.Min(sx, sy);
+
+        var (scaleX, scaleY) = stretch switch
+        {
+            Stretch.None => (1.0, 1.0),
+            Stretch.Fill => (sx, sy),
+            Stretch.UniformToFill => (max, max),
+            _ => (min, min)
+        };
+
+        var scaledWidth = sourceBounds.Width * scaleX;
+        var scaledHeight = sourceBounds.Height * scaleY;
+
+        var translateX = center ? (width - scaledWidth) / 2 : 0;
+        var translateY = center ? (height - scaledHeight) / 2 : 0;
+
+        var children = new Transforms();
+
+        if (sourceBounds.X != 0 || sourceBounds.Y != 0)
+            children.Add(new TranslateTransform(-sourceBounds.X, -sourceBounds.Y));
+
+        if (scaleX != 1 || scaleY != 1)
+            children.Add(new ScaleTransform(scaleX, scaleY));
+
+        if (translateX != 0 || translateY != 0)
+            children.Add(new TranslateTransform(translateX, translateY));
+
+        return children.Count switch
+        {
+            0 => null,
+            1 => children[0],
+            _ => new TransformGroup { Children = children }
+        };
     }
 }
