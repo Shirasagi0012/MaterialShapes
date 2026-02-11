@@ -2,9 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:MaterialShapes.Gallery.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:msm="using:MaterialShapes.Markups"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:controls="clr-namespace:MaterialShapes.Controls;assembly=MaterialShapes"
         mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="900"
         x:Class="MaterialShapes.Gallery.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -17,24 +15,7 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
     
-    <Grid>
-        <controls:MaterialShapeView
-                Background="#874934"
-                Shape="{Binding Shape}">
-            <TextBlock Text="Material Shape View"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       Foreground="Beige"
-                       FontSize="240"/>
-            <controls:MaterialShapeView.Effect>
-                <DropShadowEffect Color="Green"
-                                  BlurRadius="30"
-                                  Opacity="1"/>
-            </controls:MaterialShapeView.Effect>
-        </controls:MaterialShapeView>
-        <Button Content="Change" 
-                Command="{Binding ChangeShapeCommand}" />
-    </Grid>
+    <ContentControl Content="{Binding CurrentViewModel}" />
 
 
 

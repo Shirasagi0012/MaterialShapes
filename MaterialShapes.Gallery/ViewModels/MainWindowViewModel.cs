@@ -1,21 +1,25 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
+using MaterialShapes.Gallery.Models;
 
 namespace MaterialShapes.Gallery.ViewModels;
 
-public partial class MainWindowViewModel : ViewModelBase
+public sealed partial class MainWindowViewModel : ViewModelBase
 {
-    [ObservableProperty] public partial RoundedPolygon? Shape { get; set; }
-
-
     public MainWindowViewModel()
     {
-        Shape = RoundedPolygon.CreateStar(4, 150, 80, new(50), new(80)).Normalized();
+        Morphs = new MorphsViewModel();
+        Morphs.EditRequested += OpenEditor;
+        CurrentViewModel = Morphs;
     }
 
-    [RelayCommand]
-    public void ChangeShape()
+    public MorphsViewModel Morphs { get; }
+
+    [ObservableProperty] public partial ViewModelBase CurrentViewModel { get; set; }
+
+    private void OpenEditor(ShapeParameters parameters)
     {
-        Shape = RoundedPolygon.CreateStar(5, 150, 80, new(50), new(80)).Normalized();
+        var editor = new ShapeEditorViewModel(parameters);
+        editor.CloseRequested += () => CurrentViewModel = Morphs;
+        CurrentViewModel = editor;
     }
 }
