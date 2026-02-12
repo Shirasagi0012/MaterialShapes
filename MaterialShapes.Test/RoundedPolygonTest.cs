@@ -160,6 +160,19 @@ public class RoundedPolygonTest
     }
 
     [Fact]
+    public void FeaturesConstructorDefensivelyCopiesInputList()
+    {
+        var basePolygon = RoundedPolygon.CreateRectangle();
+        var sourceFeatures = basePolygon.Features.ToList();
+        var actual = new RoundedPolygon(sourceFeatures);
+
+        sourceFeatures[0] = Feature.BuildEdge(CubicBezier.StraightLine(new Point(0, 0), new Point(0, 0)));
+        sourceFeatures.Clear();
+
+        AssertPolygonsEqualish(basePolygon, actual);
+    }
+
+    [Fact]
     public void ComputeCenterTest()
     {
         var polygon = new RoundedPolygon(

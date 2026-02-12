@@ -24,7 +24,8 @@ namespace MaterialShapes;
 
 public abstract class Feature(IReadOnlyList<CubicBezier> cubics)
 {
-    public IReadOnlyList<CubicBezier> Cubics { get; } = cubics;
+    private readonly ImmutableArray<CubicBezier> _cubics = [..cubics];
+    public IReadOnlyList<CubicBezier> Cubics => _cubics;
     public abstract bool IsIgnorableFeature { get; }
     public abstract bool IsEdge { get; }
     public abstract bool IsConvexCorner { get; }
@@ -44,7 +45,7 @@ public abstract class Feature(IReadOnlyList<CubicBezier> cubics)
 
     public static Feature BuildEdge(CubicBezier cubic)
     {
-        return new EdgeFeature(ImmutableList.Create(cubic));
+        return new EdgeFeature([cubic]);
     }
 
     public static Feature BuildConvexCorner(IReadOnlyList<CubicBezier> cubics)
@@ -96,12 +97,12 @@ internal sealed class EdgeFeature(IReadOnlyList<CubicBezier> cubics) : Feature(c
 
     public override Feature Transformed(Func<Point, Point> f)
     {
-        return new EdgeFeature(Cubics.Select(c => c.Transformed(f)).ToImmutableList());
+        return new EdgeFeature([..Cubics.Select(c => c.Transformed(f))]);
     }
 
     public override Feature Reserved()
     {
-        return new EdgeFeature(Cubics.Reverse().Select(x => x.Reversed()).ToImmutableList());
+        return new EdgeFeature([..Cubics.Reverse().Select(x => x.Reversed())]);
     }
 
     public override bool Equals(object? obj)
@@ -134,12 +135,12 @@ internal sealed class CornerFeature(IReadOnlyList<CubicBezier> cubics, bool conv
 
     public override Feature Transformed(Func<Point, Point> f)
     {
-        return new CornerFeature(Cubics.Select(c => c.Transformed(f)).ToImmutableList(), Convex);
+        return new CornerFeature([..Cubics.Select(c => c.Transformed(f))], Convex);
     }
 
     public override Feature Reserved()
     {
-        return new EdgeFeature(Cubics.Reverse().Select(x => x.Reversed()).ToImmutableList());
+        return new EdgeFeature([..Cubics.Reverse().Select(x => x.Reversed())]);
     }
 
     public override bool Equals(object? obj)

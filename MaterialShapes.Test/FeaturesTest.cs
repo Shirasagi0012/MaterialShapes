@@ -75,4 +75,17 @@ public class FeaturesTest
         Assert.False(actual.IsConcaveCorner);
         AssertCubicsEqualish([cubic], actual.Cubics);
     }
+
+    [Fact]
+    public void FeatureDefensivelyCopiesInputCubics()
+    {
+        var cubic = CubicBezier.StraightLine(new Point(0, 0), new Point(1, 0));
+        var sourceCubics = new List<CubicBezier> { cubic };
+        var actual = Feature.BuildConvexCorner(sourceCubics);
+
+        sourceCubics[0] = CubicBezier.StraightLine(new Point(10, 10), new Point(11, 11));
+        sourceCubics.Add(CubicBezier.StraightLine(new Point(20, 20), new Point(21, 21)));
+
+        AssertCubicsEqualish([cubic], actual.Cubics);
+    }
 }

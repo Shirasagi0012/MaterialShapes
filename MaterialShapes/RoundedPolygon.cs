@@ -18,6 +18,7 @@
 // Ported from androidx\graphics\graphics-shapes\src\commonMain\kotlin\androidx\graphics\shapes\RoundedPolygon.kt by Shirasagi0012
 
 using System.Text;
+using System.Collections.Immutable;
 using Avalonia;
 
 namespace MaterialShapes;
@@ -25,18 +26,17 @@ namespace MaterialShapes;
 public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
 {
     public Point Center { get; }
-    
-    // TODO(Perf): Avoid using list to reduce allocations & duplications.
-    private readonly List<CubicBezier> _cubics;
-    private readonly List<Feature> _features;
+
+    private readonly ImmutableArray<CubicBezier> _cubics;
+    private readonly ImmutableArray<Feature> _features;
 
     public double CenterX => Center.X;
     public double CenterY => Center.Y;
 
-    public List<CubicBezier> Cubics => _cubics;
-    public List<Feature> Features => _features;
+    public IReadOnlyList<CubicBezier> Cubics => _cubics;
+    public IReadOnlyList<Feature> Features => _features;
 
-    private List<CubicBezier> BuildCubicsList()
+    private ImmutableArray<CubicBezier> BuildCubicsList()
     {
         // The first/last mechanism here ensures that the final anchor point in the shape
         // exactly matches the first anchor point. There can be rendering artifacts introduced
@@ -49,7 +49,7 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
         List<CubicBezier>? firstFeatureSplitStart = null;
         List<CubicBezier>? firstFeatureSplitEnd = null;
 
-        if (_features.Count > 0 && _features[0].Cubics.Count == 3)
+        if (_features.Length > 0 && _features[0].Cubics.Count == 3)
         {
             var centerCubic = _features[0].Cubics[1];
             var (start, end) = centerCubic.Split(0.5);
@@ -58,7 +58,7 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
         }
 
         // Iterating one past the features list size allows us to insert the initial split cubic if it exists.
-        for (var i = 0; i <= _features.Count; i++)
+        for (var i = 0; i <= _features.Length; i++)
         {
             IReadOnlyList<CubicBezier> featureCubics;
 
@@ -66,7 +66,7 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
             {
                 featureCubics = firstFeatureSplitEnd;
             }
-            else if (i == _features.Count)
+            else if (i == _features.Length)
             {
                 if (firstFeatureSplitStart is { })
                     featureCubics = firstFeatureSplitStart;
@@ -126,20 +126,22 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
                 Center));
         }
 
-        return cubics;
+        // TODO (perf): Use ImmutableArray.Builder to avoid copy.
+        return cubics.ToImmutableArray();
     }
 
-    public RoundedPolygon(List<Feature> features, Point? center = null)
+    public RoundedPolygon(IReadOnlyList<Feature> features, Point? center = null)
     {
+        var featuresArray = features.ToImmutableArray();
         if (center == null)
         {
-            if (features.Count < 2)
+            if (featuresArray.Length < 2)
                 throw new ArgumentException("Polygons must have at least 2 features", nameof(features));
 
-            var vertices = new List<double>(features.Count * 2);
-            foreach (var feature in features)
+            var vertices = new List<double>(featuresArray.Length * 2);
+            foreach (var feature in featuresArray)
             foreach (var cubic in feature.Cubics)
-            {   
+            {
                 vertices.Add(cubic.Anchor0.X);
                 vertices.Add(cubic.Anchor0.Y);
             }
@@ -148,10 +150,10 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
         }
         
         Center = center.Value;
-        _features = features;
+        _features = featuresArray;
         _cubics = BuildCubicsList();
 
-        if (_cubics.Count == 0)
+        if (_cubics.Length == 0)
             throw new ArgumentException("RoundedPolygon cannot be empty.");
 
         var prevCubic = _cubics[^1];
@@ -166,7 +168,8 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
             prevCubic = cubic;
         }
     }
-    private RoundedPolygon((List<Feature> features, Point center) built) : this(built.features, built.center)
+
+    private RoundedPolygon((ImmutableArray<Feature> features, Point center) built) : this(built.features, built.center)
     {
     }
 
@@ -191,12 +194,12 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
     {
     }
 
-    public RoundedPolygon(RoundedPolygon source) : this(new List<Feature>(source._features), source.Center)
+    public RoundedPolygon(RoundedPolygon source) : this(source._features, source.Center)
     {
     }
-    
-    
-    private static (List<Feature> features, Point center) BuildFromVertices(
+
+
+    private static (ImmutableArray<Feature> features, Point center) BuildFromVertices(
         Point[] vertices,
         CornerRounding rounding,
         IReadOnlyList<CornerRounding>? perVertexRounding,
@@ -284,7 +287,7 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
             vertexArray[i * 2 + 1] = vertices[i].Y;
         }
 
-        return (tempFeatures, center ?? CalculateCenter(vertexArray));
+        return (tempFeatures.ToImmutableArray(), center ?? CalculateCenter(vertexArray));
     }
 
     private static Point CalculateCenter(double[] vertices)
@@ -305,7 +308,7 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
     public RoundedPolygon Transformed(Func<Point, Point> f)
     {
         var center = f(Center);
-        var features = _features.Select(x => x.Transformed(f)).ToList();
+        var features = _features.Select(x => x.Transformed(f)).ToImmutableArray();
         return new RoundedPolygon(features, center);
     }
 
@@ -408,7 +411,7 @@ public sealed partial class RoundedPolygon : IEquatable<RoundedPolygon>
         return hash.ToHashCode();
     }
 
-    private static (List<Feature> features, Point center) BuildFromVertexCount(
+    private static (ImmutableArray<Feature> features, Point center) BuildFromVertexCount(
         int numVertices,
         double radius,
         Point center,
