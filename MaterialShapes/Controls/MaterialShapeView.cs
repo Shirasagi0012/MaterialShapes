@@ -112,6 +112,8 @@ public class MaterialShapeView : Decorator
             return;
         }
 
+        // TODO (Perf): This will copy the inner SKPath of geometry. Not sure if it will cause a larger amount of unmanaged memory usage.
+        // It might be better to do transform when doing conversion to StreamGeometry.
         geometry.Transform = Utils.CreateFitTransform(sourceBounds, _lastSize, Stretch, Center);
 
         _geometryCache = geometry;
