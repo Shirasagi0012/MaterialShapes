@@ -122,7 +122,7 @@ public static class FeatureMapping
     internal static double FeatureDistSquared(Feature f1, Feature f2)
     {
         if (f1 is CornerFeature c1 && f2 is CornerFeature c2 && c1.Convex != c2.Convex)
-            return Single.MaxValue;
+            return Double.MaxValue;
 
         var p1 = FeatureRepresentativePoint(f1);
         var p2 = FeatureRepresentativePoint(f2);

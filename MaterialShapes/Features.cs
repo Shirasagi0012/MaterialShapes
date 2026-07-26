@@ -33,7 +33,7 @@ public abstract class Feature(IReadOnlyList<CubicBezier> cubics)
 
     public abstract Feature Transformed(Func<Point, Point> f);
 
-    public abstract Feature Reserved();
+    public abstract Feature Reversed();
 
     public abstract override bool Equals(object? obj);
     public abstract override int GetHashCode();
@@ -100,7 +100,7 @@ internal sealed class EdgeFeature(IReadOnlyList<CubicBezier> cubics) : Feature(c
         return new EdgeFeature([..Cubics.Select(c => c.Transformed(f))]);
     }
 
-    public override Feature Reserved()
+    public override Feature Reversed()
     {
         return new EdgeFeature([..Cubics.Reverse().Select(x => x.Reversed())]);
     }
@@ -138,9 +138,9 @@ internal sealed class CornerFeature(IReadOnlyList<CubicBezier> cubics, bool conv
         return new CornerFeature([..Cubics.Select(c => c.Transformed(f))], Convex);
     }
 
-    public override Feature Reserved()
+    public override Feature Reversed()
     {
-        return new EdgeFeature([..Cubics.Reverse().Select(x => x.Reversed())]);
+        return new CornerFeature([..Cubics.Reverse().Select(x => x.Reversed())], !Convex);
     }
 
     public override bool Equals(object? obj)
