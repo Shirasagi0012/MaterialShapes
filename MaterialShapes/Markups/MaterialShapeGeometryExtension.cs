@@ -7,7 +7,7 @@ namespace MaterialShapes.Markups;
 
 public class MaterialShapeGeometryExtension : AvaloniaObject
 {
-    public MaterialShapeGeometryExtension(IBinding shape) : this()
+    public MaterialShapeGeometryExtension(BindingBase shape) : this()
     {
         this[!ShapeProperty] = shape;
     }
@@ -44,7 +44,7 @@ public class MaterialShapeGeometryExtension : AvaloniaObject
         set => SetValue(GeometryProperty, value);
     }
     
-    public IBinding ProvideValue(IServiceProvider provider)
+    public BindingBase ProvideValue(IServiceProvider provider)
     {
         return this[!GeometryProperty];
     }
