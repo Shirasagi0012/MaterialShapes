@@ -21,7 +21,7 @@ using Avalonia;
 
 namespace MaterialShapes;
 
-public static class MaterialShape
+public static class MaterialShapeCatalog
 {
     private static readonly CornerRounding CornerRound15 = new(0.15);
     private static readonly CornerRounding CornerRound20 = new(0.2);
