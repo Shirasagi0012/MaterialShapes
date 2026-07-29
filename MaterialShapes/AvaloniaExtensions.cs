@@ -65,7 +65,10 @@ public static class AvaloniaExtensions
         {
             WriteCubics(
                 ctx,
-                morph.EnumerateCubics(progress).ToList(),
+                // Match graphics-shapes Morph.asCubics(): its final cubic deliberately reuses the
+                // first anchor so the contour closes exactly. EnumerateCubics exposes the raw
+                // interpolation stream and can leave a sub-pixel closing line at the seam.
+                morph.AsCubics(progress),
                 startAngle,
                 repeatPath,
                 closePath,

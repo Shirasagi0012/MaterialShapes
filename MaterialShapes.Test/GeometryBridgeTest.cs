@@ -9,6 +9,19 @@ namespace MaterialShapes.Test;
 public class GeometryBridgeTest
 {
     [Fact]
+    public void OvalMatchesTheUpstreamCatalogGeometry()
+    {
+        var oval = MaterialShapeCatalog.Oval;
+        var maxBounds = oval.CalculateMaxBounds();
+
+        // org.jetbrains.compose.material3:material3-desktop:1.12.0-alpha03 uses the default
+        // eight-vertex graphics-shapes circle for MaterialShapes.Oval.
+        Assert.Equal(9, oval.Cubics.Count);
+        Assert.Equal(1.1552892, maxBounds.Width, 6);
+        Assert.Equal(1.1552892, maxBounds.Height, 6);
+    }
+
+    [Fact]
     public void WithoutAStartAngleTheCubicsAreEmittedUntouched()
     {
         var polygon = MaterialShapeCatalog.Cookie9Sided;

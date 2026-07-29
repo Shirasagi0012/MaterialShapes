@@ -177,7 +177,10 @@ public static class MaterialShapeCatalog
     internal static RoundedPolygon OvalPolygon()
     {
         var m = new Matrix(1, 0, 0, 0.64, 0, 0);
-        return RoundedPolygon.CreateCircle(10)
+        // MaterialShapes.oval() intentionally uses graphics-shapes' default 8-vertex circle.
+        // MaterialShapes.circle() uses 10 vertices, but reusing that count here changes the
+        // transformed oval's max bounds and makes LoadingIndicator about one percent too small.
+        return RoundedPolygon.CreateCircle()
             .Transformed(m)
             .Transformed(RotateNeg45);
     }
