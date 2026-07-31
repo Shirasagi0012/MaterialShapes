@@ -6,12 +6,11 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>
     <PackageId>Shirasagi0012.MaterialShapes</PackageId>
-    <Version>0.1.0-alpha</Version>
+    <Version>0.1.1-alpha</Version>
     <Authors>Shirasagi0012</Authors>
     <Description>Avalonia port of androidx graphics-shapes: rounded polygons, the Material 3 shape catalog, and shape morphing.</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
@@ -19,7 +18,7 @@
     <PackageTags>avalonia;material-design;material;shapes;morph;polygon;graphics-shapes</PackageTags>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <PackageOutputPath>$(MSBuildThisFileDirectory)..\artifacts</PackageOutputPath>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)..\artifacts\packages</PackageOutputPath>
     <PackageProjectUrl>https://github.com/Shirasagi0012/MaterialShapes</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Shirasagi0012/MaterialShapes</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
